@@ -1,7 +1,7 @@
 import mongoose,{Schema} from "mongoose";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt"
-const userSchema = new Schema(
+const ownerSchema = new Schema(
     {
         username: {
             type: String,
@@ -34,6 +34,12 @@ const userSchema = new Schema(
             type: String,
             required: [true, 'Password is required']
         },
+        rooms: [
+            {
+                type: Schema.Types.ObjectId,
+                ref: "Room",
+            }
+        ],
         refreshToken: {
             type: String,
         },
@@ -43,18 +49,18 @@ const userSchema = new Schema(
     }
 )
 
-userSchema.pre("save",async function (next) { // encrypt the pass before save to database
+ownerSchema.pre("save",async function (next) { // encrypt the pass before save to database
     if(!this.isModified("password")) return next();
 
     this.password = await bcrypt.hash(this.password, 10)
     next()
 }) // dont use () => {} here
 
-userSchema.methods.isPasswordCorrect = async function name(password) {
+ownerSchema.methods.isPasswordCorrect = async function name(password) {
     return await bcrypt.compare(password, this.password)
 }
 
-userSchema.methods.generateAccessToken = function(){
+ownerSchema.methods.generateAccessToken = function(){
     return jwt.sign(
         {
             _id: this._id,
@@ -68,7 +74,7 @@ userSchema.methods.generateAccessToken = function(){
         }
     )
 }
-userSchema.methods.generateRefreshToken = function(){
+ownerSchema.methods.generateRefreshToken = function(){
     return jwt.sign(
         {
             _id: this._id, // it refreshed often so used less payload here than accessToken
@@ -80,4 +86,4 @@ userSchema.methods.generateRefreshToken = function(){
     )
 }
 
-export const User = mongoose.model("User",userSchema)
+export const Owner = mongoose.model("Owner",ownerSchema)
