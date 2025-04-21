@@ -27,13 +27,6 @@ const feedbackSchema = new Schema({
 });
 
 const roomSchema = new Schema({
-  roomId: {
-    type: String,
-    required: true,
-    unique: true,
-    trim: true,
-    index: true,
-  },
   name: {
     type: String,
     required: true,

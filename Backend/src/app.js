@@ -19,12 +19,21 @@ app.use(cookieParser())
 
 //routes import
 import userRouter from './routes/user.route.js'
+import roomRouter from './routes/room.route.js'
+import ownerRoter from './routes/owner.route.js'
 
 //routers declaration
 app.use("/api/v1/users", userRouter)
+app.use("/api/v1/rooms", roomRouter)
+app.use("/api/v1/owner", ownerRoter)
 
 // http://localhost:8000/api/v1/users/register
 // http://localhost:8000/api/v1/users/login
 // http://localhost:8000/api/v1/users/logout
+
+// http://localhost:8000/api/v1/rooms/add
+
+// http://localhost:8000/api/v1/owner/register
+
 
 export { app }

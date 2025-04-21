@@ -1,41 +1,69 @@
-import { asyncHandler } from "../utils/asyncHandler";
-import { ApiError } from "../utils/ApiError.js";
 import { Room } from "../models/room.model.js";
+import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
+import { uploadOnCloudinary } from "../utils/cloudinary.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
+import { Owner } from "../models/owner.model.js";
 
 
-const createRoom = asyncHandler(async (req, res) => {
-    const { roomId, name, location, price, status, distance, rating, facilities, images } = req.body;
+const addRoom = asyncHandler(async (req, res) => {
+    const { name, location, price } = req.body;
+    console.log("Request Files:", req.files);
+    console.log("Local Paths:", req.files?.map(f => f.path));
 
-    if ([roomId, name, location, price, status, distance].some((field) => field?.trim() === "")) {
-        throw new ApiError(400, "All fields are required");
+
+    const facilities = JSON.parse(req.body.facilities);
+
+    if (!name || !location || !price) {
+        throw new ApiError(400, "Name, location, price");
     }
 
-    const existedRoom = await Room.findOne({ roomId });
+    // const imageLocalPaths = req.files?.images?.map(file => file.path) || [];
 
-    if (existedRoom) {
-        throw new ApiError(409, "Room with this ID already exists");
+    // const uploadPromises = imageLocalPaths.map(path => uploadOnCloudinary(path));
+    // const uploadedImages = await Promise.all(uploadPromises);
+
+    // const imageUrls = uploadedImages
+    //   .filter(image => image?.url)
+    //   .map(image => image.url);
+
+    // 2. Check files were uploaded
+    if (!req.files || req.files.length === 0) {
+        throw new ApiError(400, "At least one image is required");
+    }
+
+    // 3. Process images
+    const imageUploadPromises = req.files.map(async (file) => {
+        const result = await uploadOnCloudinary(file.path);
+        if (!result?.url) {
+            throw new ApiError(500, "Failed to upload one or more images");
+        }
+        return result.url;
+    });
+
+    // 4. Wait for all uploads to complete
+    let imageUrls;
+    try {
+        imageUrls = await Promise.all(imageUploadPromises);
+    } catch (error) {
+        throw new ApiError(500, error.message || "Image upload failed");
     }
 
     const room = await Room.create({
-        roomId,
         name,
         location,
         price,
-        status,
-        distance,
-        rating,
-        facilities,
-        images
+        facilities: facilities || [],
+        images: imageUrls,
+        owner: req.user._id,
+        status: "Available",
+        rating: 0,
     });
 
-    if (!room) {
-        throw new ApiError(500, "Failed to create room");
-    }
+    return res
+        .status(201)
+        .json(new ApiResponse(201, room, "Room added successfully"));
 
-    return res.status(201).json(new ApiResponse("Room created successfully", room));
 });
 
-export {
-    createRoom,
-}
+export { addRoom };
