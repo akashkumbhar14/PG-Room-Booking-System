@@ -1,5 +1,31 @@
 import mongoose, { Schema } from "mongoose";
 
+
+const feedbackSchema = new Schema({
+  user: {
+    type: Schema.Types.ObjectId,
+    ref: "User",
+    required: true
+  },
+  comment: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  rating: {
+    type: Number,
+    min: 1,
+    max: 5,
+    required: false
+  },
+  date: {
+    type: Date,
+    default: Date.now
+  }
+}, {
+  _id: false
+});
+
 const roomSchema = new Schema({
   roomId: {
     type: String,
@@ -29,10 +55,6 @@ const roomSchema = new Schema({
     default: "Available",
     required: true,
   },
-  distance: {
-    type: String,
-    required: true,
-  },
   rating: {
     type: Number,
     min: 0,
@@ -41,12 +63,30 @@ const roomSchema = new Schema({
   },
   facilities: {
     type: [String],
-    default: [],
-  },
+    enum: [
+      "Kitchen Facilities",
+      "Internet availability(Wi-Fi)",
+      "Parking Facilities",
+      "Hot Water",
+      "Attach bathroom",
+      "Balcony",
+      "Bed",
+      "Wardrobe",
+      "Chair",
+      "Desk"
+    ],
+    default: []
+  },  
   images: {
     type: [String], // Array of image URLs or filenames
     required: true,
-  }
+  },
+  feedback: [feedbackSchema],
+  owner: {
+    type: Schema.Types.ObjectId,
+    ref: "Owner",
+    required: true,
+  },
 }, {
   timestamps: true,
 });
