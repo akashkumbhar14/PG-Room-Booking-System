@@ -27,22 +27,26 @@ const feedbackSchema = new Schema({
 });
 
 const roomSchema = new Schema({
-  roomId: {
-    type: String,
-    required: true,
-    unique: true,
-    trim: true,
-    index: true,
-  },
   name: {
     type: String,
     required: true,
     trim: true,
   },
-  location: {
+  address: {
     type: String,
     required: true,
     trim: true,
+  },
+  location: {
+    type: {
+      type: String,
+      enum: ["Point"],
+      default: "Point",
+    },
+    coordinates: {
+      type: [Number],
+      required: true,
+    },
   },
   price: {
     type: Number,
@@ -76,7 +80,7 @@ const roomSchema = new Schema({
       "Desk"
     ],
     default: []
-  },  
+  },
   images: {
     type: [String], // Array of image URLs or filenames
     required: true,
@@ -91,5 +95,7 @@ const roomSchema = new Schema({
   timestamps: true,
 });
 
+roomSchema.index({ location: "2dsphere" });
 
 export const Room = mongoose.model("Room", roomSchema);
+
