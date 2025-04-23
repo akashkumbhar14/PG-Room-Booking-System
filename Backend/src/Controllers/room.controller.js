@@ -187,7 +187,7 @@ const deleteRoom = asyncHandler(async (req, res) => {
     console.log("Deleting Room:", roomId, "Owner:", req.user._id);
     const room = await Room.findOneAndDelete({
         _id: roomId,
-        owner: req.user._id 
+        owner: req.user._id
     });
 
     if (!room) {
@@ -205,9 +205,43 @@ const deleteRoom = asyncHandler(async (req, res) => {
         .json(new ApiResponse(204, null, "Room deleted successfully"));
 });
 
+const getAvailableRooms = asyncHandler(async (req, res) => {
+    const { minPrice, maxPrice, facilities } = req.query;
+
+    const filter = {
+        status: "Available"
+    };
+
+    if (minPrice || maxPrice) {
+        filter.price = {};
+        if (minPrice) filter.price.$gte = parseFloat(minPrice);
+        if (maxPrice) filter.price.$lte = parseFloat(maxPrice);
+    }
+
+    if (facilities) {
+        const facilitiesArray = Array.isArray(facilities)
+            ? facilities
+            : facilities.split(",");
+        filter.facilities = { $all: facilitiesArray };
+    }
+
+    const rooms = await Room.find(filter)
+        .populate("owner", "username email phoneNo")
+        .select("-__v");
+
+    if (!rooms) {
+        throw new ApiError(404,"no available rooms")
+    }
+
+    return res
+        .status(200)
+        .json(new ApiResponse(200, rooms, "Available rooms fetched successfully"));
+});
+
 export {
     registerRoom,
     getNearbyAvailableRooms,
+    getAvailableRooms,
     getRoomProfile,
     updateRoomStatus,
     updateRoomPrice,
