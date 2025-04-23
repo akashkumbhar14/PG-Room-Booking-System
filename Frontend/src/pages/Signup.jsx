@@ -4,7 +4,7 @@ import axios from "axios";
 import signupImg from "../assets/signup.png";
 
 const Signup = () => {
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
   const [message, setMessage] = useState("");
 
   const {
@@ -38,8 +38,8 @@ const Signup = () => {
   
       if (res.status === 201 || res.status === 200) {
         setMessage("Signup successful!");
-        navigate("/rooms");
-        // reset();
+        // navigate("/rooms");
+        reset();
       }
     } catch (err) {
       console.error("Signup error:", err.response?.data || err.message);
@@ -151,7 +151,20 @@ const Signup = () => {
           >
             Sign Up
           </button>
+          <p className="text-center text-sm mt-4">
+            Login as User{" "}
+            <a href="/user-login" className="text-[#7472E0] hover:underline">
+              User Login
+            </a>
+          </p>
+          <p className="text-center text-sm mt-1">
+             Create account as Owner{" "}
+            <a href="/owner-register" className="text-[#7472E0] hover:underline">
+              CreateOwner
+            </a>
+          </p>
         </form>
+        
       </div>
     </div>
   );

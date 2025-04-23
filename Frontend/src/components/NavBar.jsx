@@ -37,7 +37,7 @@ const Navbar = () => {
           </li>
           <li>
             <button
-              onClick={() => navigate("/signup")}
+              onClick={() => navigate("/user-register")}
               className="px-5 py-2 rounded-full border border-[#7472E0] text-[#7472E0] hover:bg-[#7472E0] hover:text-white transition shadow-md"
             >
               Sign Up
@@ -50,7 +50,7 @@ const Navbar = () => {
           <button onClick={() => navigate("/user-login")} className="text-[#7472E0] font-semibold text-sm">
             Sign In
           </button>
-          <button onClick={() => navigate("/user-signup")} className="text-[#7472E0] font-semibold text-sm border px-3 py-1 rounded-full border-[#7472E0]">
+          <button onClick={() => navigate("/user-register")} className="text-[#7472E0] font-semibold text-sm border px-3 py-1 rounded-full border-[#7472E0]">
             Sign Up
           </button>
           <button onClick={() => setMenuOpen(!menuOpen)} className="text-3xl text-[#7472E0] z-50">
