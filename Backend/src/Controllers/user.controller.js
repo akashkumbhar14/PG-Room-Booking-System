@@ -164,10 +164,88 @@ const logoutUser = asyncHandler(async (req,res) => {
 
 })
 
+const getUserProfile = asyncHandler( async (req, res) => {
+    const user = await User.findById(req.user._id).select("-password -refreshToken");
 
+    if (!user) {
+       throw new ApiError(404,"User not found") 
+    }
+
+    res.status(200)
+    .json(new ApiResponse(200,user,"user fetched successfully"))
+})
+
+const changeCurrentPassword = asyncHandler(async(req, res) => {
+    const {oldPassword, newPassword} = req.body
+
+    
+
+    const user = await User.findById(req.user?._id)
+    const isPasswordCorrect = await user.isPasswordCorrect(oldPassword)
+
+    if (!isPasswordCorrect) {
+        throw new ApiError(400, "Invalid old password")
+    }
+
+    user.password = newPassword
+    await user.save({validateBeforeSave: false})
+
+    return res
+    .status(200)
+    .json(new ApiResponse(200, {}, "Password changed successfully"))
+})
+
+const updateUserDetails = asyncHandler(async (req, res) => {
+    const { fullName, email, phoneNo } = req.body;
+  
+    if (!fullName && !email && !phoneNo) {
+      throw new ApiError(400, "Full name, email, and phone number are required");
+    }
+  
+    const emailExists = await User.findOne({
+      email,
+      _id: { $ne: req.user._id }
+    });
+  
+    if (emailExists) {
+      throw new ApiError(409, "Email is already in use by another account");
+    }
+  
+    // Check if phone number is already used by another user
+    const phoneExists = await User.findOne({
+      phoneNo,
+      _id: { $ne: req.user._id }
+    });
+  
+    if (phoneExists) {
+      throw new ApiError(409, "Phone number is already in use by another account");
+    }
+  
+    const user = await User.findByIdAndUpdate(
+      req.user._id,
+      { fullName, email, phoneNo },
+      {
+        new: true,
+        runValidators: true,
+        context: "query"
+      }
+    ).select("-password -refreshToken");
+  
+    if (!user) {
+      throw new ApiError(404, "User not found");
+    }
+  
+    return res
+      .status(200)
+      .json(new ApiResponse(200, user, "Account details updated successfully"));
+  });
+  
 
 export {
     registerUser,
     loginUser,
-    logoutUser
+    logoutUser,
+    getUserProfile,
+    changeCurrentPassword,
+    updateUserDetails
 }
