@@ -31,7 +31,7 @@ app.use("/api/v1/owner", ownerRoter)
 // http://localhost:8000/api/v1/users/login
 // http://localhost:8000/api/v1/users/logout
 
-// http://localhost:8000/api/v1/rooms/add
+// http://localhost:8000/api/v1/rooms/register
 
 // http://localhost:8000/api/v1/owner/register
 
