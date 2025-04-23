@@ -47,7 +47,7 @@ const App = () => {
         <Route path="/owner" element={<OwnerProfile />} />
         <Route path="/add-room" element={<AddRoom />} />
         <Route path="/edit-room/:roomId" element={<EditRoom/>}/>
-
+{/* //change for sending on github -- adding to main branch*/}
       </Routes>
       <Footer/>
     </div>
