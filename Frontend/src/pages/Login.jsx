@@ -100,8 +100,14 @@ const Login = () => {
 
           <p className="text-center text-sm mt-4">
             Don’t have an account?{" "}
-            <a href="/signup" className="text-[#7472E0] hover:underline">
+            <a href="/user-register" className="text-[#7472E0] hover:underline">
               Sign Up
+            </a>
+          </p>
+          <p className="text-center text-sm mt-1">
+            Login as Owner{" "}
+            <a href="/owner-login" className="text-[#7472E0] hover:underline">
+              OwnerLogin
             </a>
           </p>
         </div>

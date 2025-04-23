@@ -3,20 +3,37 @@ import { useForm } from "react-hook-form";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
-const Signup = () => {
+const OwnerSignup = () => {
   const navigate = useNavigate();
   const {
     register,
     handleSubmit,
     formState: { errors },
+    watch,
   } = useForm();
 
   const onSubmit = async (data) => {
+    const { name, username, email, phone, password, confirmPassword } = data;
+
+    if (password !== confirmPassword) {
+      alert("Passwords do not match");
+      return;
+    }
+
+    const payload = {
+      fullName: name,
+      username,
+      email,
+      phoneNo: phone,
+      password,
+    };
+
     try {
-      await axios.post("/api/v1/owner/register", data);
-      navigate("/owner-login"); // ✅ Redirect after successful signup
+      await axios.post("/api/v1/owner/register", payload);
+      navigate("/owner-login");
     } catch (error) {
       console.error("Signup error:", error);
+      alert(error?.response?.data?.message || "Signup failed.");
     }
   };
 
@@ -28,10 +45,18 @@ const Signup = () => {
           <input
             type="text"
             placeholder="Full Name"
-            {...register("name", { required: "Name is required" })}
+            {...register("name", { required: "Full name is required" })}
             className="w-full p-3 mb-4 border rounded-md"
           />
           {errors.name && <p className="text-sm text-red-500 mb-2">{errors.name.message}</p>}
+
+          <input
+            type="text"
+            placeholder="Username"
+            {...register("username", { required: "Username is required" })}
+            className="w-full p-3 mb-4 border rounded-md"
+          />
+          {errors.username && <p className="text-sm text-red-500 mb-2">{errors.username.message}</p>}
 
           <input
             type="email"
@@ -98,9 +123,18 @@ const Signup = () => {
             Already have an account?{" "}
             <span
               className="text-[#7472E0] cursor-pointer hover:underline"
-              onClick={() => navigate("/owner/login")}
+              onClick={() => navigate("/owner-login")}
             >
               Login here
+            </span>
+          </p>
+          <p className="text-center text-sm mt-4">
+            Login as a User{" "}
+            <span
+              className="text-[#7472E0] cursor-pointer hover:underline"
+              onClick={() => navigate("/user-login")}
+            >
+              User Login
             </span>
           </p>
         </form>
@@ -109,4 +143,4 @@ const Signup = () => {
   );
 };
 
-export default Signup;
+export default OwnerSignup;
