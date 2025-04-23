@@ -11,18 +11,25 @@ const Navbar = () => {
   return (
     <nav className="backdrop-blur-md bg-white/70 shadow-md sticky top-0 z-50 px-6 py-4">
       <div className="max-w-7xl mx-auto flex justify-between items-center text-gray-800">
-        <h1 className="text-2xl md:text-3xl font-extrabold tracking-wide text-[#7472E0]">
+        <h1 className="text-2xl md:text-3xl font-extrabold tracking-wide text-[#7472E0] cursor-pointer" onClick={() => navigate("/")}>
           ROOM<span className="text-yellow-400">BUDDY</span>
         </h1>
 
         {/* Desktop Nav */}
         <ul className="hidden md:flex items-center gap-6 text-sm md:text-base font-medium">
-          <li><a href="/" className="hover:text-[#7472E0] transition">Home</a></li>
-          <li><a href="/contact" className="hover:text-[#7472E0] transition">Contact Us</a></li>
-          <li><a href="/about" className="hover:text-[#7472E0] transition">About</a></li>
+          <li>
+            <button onClick={() => navigate("/contact")} className="hover:text-[#7472E0] transition">
+              Contact Us
+            </button>
+          </li>
+          <li>
+            <button onClick={() => navigate("/about")} className="hover:text-[#7472E0] transition">
+              About
+            </button>
+          </li>
           <li>
             <button
-              onClick={() => navigate("/login")}
+              onClick={() => navigate("/user-login")}
               className="px-5 py-2 rounded-full bg-[#7472E0] text-white hover:brightness-110 shadow-md transition"
             >
               LogIn
@@ -40,8 +47,12 @@ const Navbar = () => {
 
         {/* Mobile Nav */}
         <div className="flex items-center md:hidden gap-3">
-          <button onClick={() => navigate("/login")} className="text-[#7472E0] font-semibold text-sm">Sign In</button>
-          <button onClick={() => navigate("/signup")} className="text-[#7472E0] font-semibold text-sm border px-3 py-1 rounded-full border-[#7472E0]">Sign Up</button>
+          <button onClick={() => navigate("/user-login")} className="text-[#7472E0] font-semibold text-sm">
+            Sign In
+          </button>
+          <button onClick={() => navigate("/user-signup")} className="text-[#7472E0] font-semibold text-sm border px-3 py-1 rounded-full border-[#7472E0]">
+            Sign Up
+          </button>
           <button onClick={() => setMenuOpen(!menuOpen)} className="text-3xl text-[#7472E0] z-50">
             {menuOpen ? <HiX /> : <HiMenu />}
           </button>
@@ -49,11 +60,18 @@ const Navbar = () => {
       </div>
 
       {/* Sliding Mobile Menu */}
-      <div className={`fixed top-0 right-0 h-full w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out z-40 ${menuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+      <div
+        className={`fixed top-0 right-0 h-full w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out z-40 ${
+          menuOpen ? "translate-x-0" : "translate-x-full"
+        }`}
+      >
         <div className="p-6 mt-16 flex flex-col gap-4 text-sm font-medium text-gray-800">
-          <a href="/" onClick={() => setMenuOpen(false)} className="hover:text-[#7472E0]">Home</a>
-          <a href="/contact" onClick={() => setMenuOpen(false)} className="hover:text-[#7472E0]">Contact Us</a>
-          <a href="/about" onClick={() => setMenuOpen(false)} className="hover:text-[#7472E0]">About</a>
+          <button onClick={() => { setMenuOpen(false); navigate("/contact"); }} className="hover:text-[#7472E0] text-left">
+            Contact Us
+          </button>
+          <button onClick={() => { setMenuOpen(false); navigate("/about"); }} className="hover:text-[#7472E0] text-left">
+            About
+          </button>
         </div>
       </div>
 

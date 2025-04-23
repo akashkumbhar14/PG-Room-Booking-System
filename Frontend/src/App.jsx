@@ -1,18 +1,24 @@
 import React from 'react';
 import { Route, Routes } from "react-router-dom";
-import Home from './components/Home';
-import Login from './components/Login';
-import Signup from './components/Signup';
-import AvailableRooms from './components/AvailableRooms';
-import PrivateRoute from './components/PrivateRoute';
+import Home from './pages/Home';
+import Login from './pages/Login';
+import Signup from './pages/Signup';
+import OwnerLogin from './pages/OwnerLogin';
+import OwnerSignup from './pages/ownerSignup';
 
-import RoomDetails from './components/RoomDetails';
-import UserProfile from './components/UserProfile';
-import OwnerProfile from './components/OwnerProfile';
-import AddRoom from './components/AddRoom';
-import EditRoom from './components/EditRoom';
+import AvailableRooms from './pages/AvailableRooms';
+import RoomDetails from './pages/RoomDetails';
+import UserProfile from './pages/UserProfile';
+import OwnerProfile from './pages/OwnerProfile';
+import AddRoom from './pages/AddRoom';
+import EditRoom from './pages/EditRoom';
 import Navbar from './components/NavBar';
 import Footer from './components/Footer';
+import AboutUs from './components/AboutUs';
+import ContactUs from './components/ContactUs';
+
+
+import PrivateRoute from './pages/PrivateRoute';
 
 const App = () => {
   return (
@@ -20,9 +26,15 @@ const App = () => {
       <Navbar/>
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
+        <Route path="/user-login" element={<Login />} />
+        <Route path="/owner-login" element={<OwnerLogin/>} />
+        <Route path="/user-register" element={<Signup />} />
+        <Route path="/owner-register" element={<OwnerSignup/>} />
+
+        {/* Public Routes */}
         <Route path="/home" element={<Home />} />
+        <Route path="/about" element={<AboutUs />} />
+        <Route path="/contact" element={<ContactUs />} />
 
         {/* 🔒 Protected Route for Available Rooms */}
         <Route path="/rooms" element={
