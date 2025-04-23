@@ -11,13 +11,14 @@ import {
   getRoomProfile,
   addRoomFeedback,
   updateRoomPrice,
-  deleteRoom
+  deleteRoom,
+  getAvailableRooms
 } from "../controllers/room.controller.js";
 
 
 // (owner only)
 router.route("/register").post(verifyJWT, upload.array("images", 5), registerRoom); // register room
-router.route("/:roomId/status").patch(upload.none(),verifyJWT, updateRoomStatus); // update Room Status 
+router.route("/:roomId/status").patch(upload.none(),verifyJWT, updateRoomStatus); // update Room Status
 router.route("/:roomId/price").patch(upload.none() ,verifyJWT, updateRoomPrice) // update room price
 router.route("/:roomId").delete(verifyJWT, deleteRoom) // delete room
 
@@ -26,6 +27,7 @@ router.route("/:roomId/feedback").post(verifyJWT, addRoomFeedback); // adding ro
 
 // (public)
 router.route("/nearby").get(getNearbyAvailableRooms); // find nearby rooms
-router.route("/:roomId").get(getRoomProfile); // get room profile info
+router.route("/available").get(getAvailableRooms) // get all available rooms
+router.route("/:roomId").get(getRoomProfile); // get a room profile info
 
 export default router;

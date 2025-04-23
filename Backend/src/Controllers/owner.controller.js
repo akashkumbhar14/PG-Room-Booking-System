@@ -123,8 +123,20 @@ const logoutOwner = asyncHandler(async (req, res) => {
         .json(new ApiResponse(200, {}, "Owner logged out"));
 });
 
+const getOwnerProfile = asyncHandler( async (req, res) => {
+    const owner = await Owner.findById(req.user._id).select("-password -refreshToken");
+
+    if (!owner) {
+        throw new ApiError(404,"Owner not found")
+    }
+
+    res.status(200)
+    .json(new ApiResponse(200,owner,"owner fetched successfully"))
+})
+
 export {
     registerOwner,
     loginOwner,
-    logoutOwner
+    logoutOwner,
+    getOwnerProfile
 };
