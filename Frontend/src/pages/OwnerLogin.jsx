@@ -36,7 +36,7 @@ const OwnerLogin = () => {
         localStorage.setItem("owner", JSON.stringify(user));
 
         setMessage({ type: "success", text: "Owner login successful!" });
-        navigate("/owner/dashboard"); // Change this path as needed
+        navigate("/rooms"); // Change this path as needed
       }
     } catch (error) {
       setMessage({
@@ -104,13 +104,13 @@ const OwnerLogin = () => {
           </form>
 
           <p className="text-center text-sm mt-4">
-  Don’t have an owner account?{" "}
-  <a href="/owner/register" className="text-[#7472E0] hover:underline">
-    Sign up as Owner
+  Create account as Owner{" "}
+  <a href="/owner-register" className="text-[#7472E0] hover:underline">
+    Owner
   </a>
   <br />
-  Want to book rooms?{" "}
-  <a href="/user/login" className="text-[#7472E0] hover:underline">
+  Login as a User{" "}
+  <a href="/user-login" className="text-[#7472E0] hover:underline">
     Login as User
   </a>
 </p>

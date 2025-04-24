@@ -2,7 +2,6 @@ import React from 'react';
 import { Route, Routes } from "react-router-dom";
 import Home from './pages/Home';
 import Login from './pages/Login';
-import Signup from './pages/Signup';
 import OwnerLogin from './pages/OwnerLogin';
 import OwnerSignup from './pages/ownerSignup';
 
@@ -19,6 +18,7 @@ import ContactUs from './components/ContactUs';
 
 
 import PrivateRoute from './pages/PrivateRoute';
+import Signup from './pages/Signup';
 
 const App = () => {
   return (
@@ -27,8 +27,8 @@ const App = () => {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/user-login" element={<Login />} />
+        <Route path="/user-register" element={<Signup/>} />
         <Route path="/owner-login" element={<OwnerLogin/>} />
-        <Route path="/user-register" element={<Signup />} />
         <Route path="/owner-register" element={<OwnerSignup/>} />
 
         {/* Public Routes */}
@@ -42,12 +42,12 @@ const App = () => {
             <AvailableRooms />
           </PrivateRoute>
         } />
-        <Route path="/room/:id" element={<RoomDetails />} />
+        <Route path="/rooms/:id" element={<RoomDetails />} />
         <Route path="/profile" element={<UserProfile />} />
         <Route path="/owner" element={<OwnerProfile />} />
         <Route path="/add-room" element={<AddRoom />} />
         <Route path="/edit-room/:roomId" element={<EditRoom/>}/>
-
+{/* //change for sending on github -- adding to main branch*/}
       </Routes>
       <Footer/>
     </div>
