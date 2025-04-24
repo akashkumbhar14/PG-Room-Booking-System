@@ -36,7 +36,7 @@ const OwnerLogin = () => {
         localStorage.setItem("owner", JSON.stringify(user));
 
         setMessage({ type: "success", text: "Owner login successful!" });
-        navigate("/owner/dashboard"); // Change this path as needed
+        navigate("/rooms"); // Change this path as needed
       }
     } catch (error) {
       setMessage({

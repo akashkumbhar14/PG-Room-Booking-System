@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import axios from "axios";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Pagination } from "swiper/modules";
 import "swiper/css";
@@ -7,81 +8,25 @@ import "swiper/css/navigation";
 import "swiper/css/pagination";
 import { FaMapMarkerAlt, FaUserCircle, FaStar, FaCheckCircle, FaTimesCircle } from "react-icons/fa";
 
-// Sample room data (simulate fetching from backend)
-const sampleRooms = [
-  {
-    id: "1",
-    name: "Spacious Studio Apartment",
-    description:
-      "Modern studio in the heart of the city with great sunlight and amenities.",
-    images: [
-      "/assets/room1.jpg",
-      "/assets/room2.jpg",
-      "/assets/room3.jpg",
-    ],
-    status: "Available",
-    rating: 4.6,
-    facilities: {
-      wifi: true,
-      parking: false,
-      ac: true,
-      laundry: true,
-      kitchen: false,
-    },
-    address: {
-      street: "123 Main Street",
-      city: "Los Angeles",
-      state: "CA",
-      country: "USA",
-    },
-    owner: {
-      name: "Alex Johnson",
-      contact: "alex.johnson@example.com",
-    },
-  },
-  {
-    id: "2",
-    name: "Cozy Room in Shared Apartment",
-    description:
-      "A comfortable room in a peaceful neighborhood, close to transport and shops.",
-    images: [
-      "/assets/room4.jpg",
-      "/assets/room5.jpg",
-      "/assets/room6.jpg",
-    ],
-    status: "Booked",
-    rating: 4.1,
-    facilities: {
-      wifi: true,
-      parking: true,
-      ac: false,
-      laundry: false,
-      kitchen: true,
-    },
-    address: {
-      street: "456 Oak Avenue",
-      city: "San Francisco",
-      state: "CA",
-      country: "USA",
-    },
-    owner: {
-      name: "Jamie Lee",
-      contact: "jamie.lee@example.com",
-    },
-  },
-];
-
 const RoomDetails = () => {
   const { id } = useParams();
-  const room = sampleRooms.find((r) => r.id === id);
+  const [room, setRoom] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  if (!room) {
-    return (
-      <div className="p-8 text-center text-gray-700">
-        Room not found.
-      </div>
-    );
-  }
+  const fetchRoomDetails = async () => {
+    try {
+      const res = await axios.get(`http://localhost:8000/api/v1/rooms/${id}`);
+      setRoom(res.data.data);
+    } catch (error) {
+      console.error("Error fetching room data", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchRoomDetails();
+  }, [id]);
 
   const renderFacility = (label, isAvailable) => (
     <div className="flex items-center gap-2 text-gray-700">
@@ -93,6 +38,9 @@ const RoomDetails = () => {
       <span>{label}</span>
     </div>
   );
+
+  if (loading) return <div className="p-8 text-center">Loading...</div>;
+  if (!room) return <div className="p-8 text-center text-gray-700">Room not found.</div>;
 
   return (
     <div className="max-w-5xl mx-auto p-6">
@@ -117,28 +65,32 @@ const RoomDetails = () => {
         ))}
       </Swiper>
 
-      <p className="text-gray-600 text-lg mb-4">{room.description}</p>
+      <p className="text-gray-600 text-lg mb-4">Price: ₹{room.price}</p>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-        {/* Address and Owner */}
         <div className="bg-white p-4 rounded-lg shadow">
           <h3 className="text-xl font-semibold text-[#7472E0] mb-2">Address</h3>
           <p className="flex items-center gap-2 text-gray-700">
             <FaMapMarkerAlt className="text-[#7472E0]" />
-            {`${room.address.street}, ${room.address.city}, ${room.address.state}, ${room.address.country}`}
+            {room.address}
           </p>
         </div>
 
         <div className="bg-white p-4 rounded-lg shadow">
           <h3 className="text-xl font-semibold text-[#7472E0] mb-2">Owner Info</h3>
-          <p className="flex items-center gap-2 text-gray-700">
-            <FaUserCircle className="text-[#7472E0]" />
-            {room.owner.name}
-          </p>
-          <p className="ml-6 text-sm text-gray-600">{room.owner.contact}</p>
+          {room.owner ? (
+            <>
+              <p className="flex items-center gap-2 text-gray-700">
+                <FaUserCircle className="text-[#7472E0]" />
+                {room.owner.name}
+              </p>
+              <p className="ml-6 text-sm text-gray-600">{room.owner.contact}</p>
+            </>
+          ) : (
+            <p className="text-gray-600 italic">Owner info not available</p>
+          )}
         </div>
 
-        {/* Status and Rating */}
         <div className="bg-white p-4 rounded-lg shadow">
           <h3 className="text-xl font-semibold text-[#7472E0] mb-2">Room Status</h3>
           <span
@@ -161,16 +113,30 @@ const RoomDetails = () => {
         </div>
       </div>
 
-      {/* Facilities */}
       <div className="bg-white p-6 rounded-lg shadow">
         <h3 className="text-xl font-semibold text-[#7472E0] mb-4">Facilities</h3>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-          {renderFacility("Wi-Fi", room.facilities.wifi)}
-          {renderFacility("Parking", room.facilities.parking)}
-          {renderFacility("AC", room.facilities.ac)}
-          {renderFacility("Laundry", room.facilities.laundry)}
-          {renderFacility("Kitchen", room.facilities.kitchen)}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+          {room.facilities.map((facility, index) => renderFacility(facility, true))}
         </div>
+      </div>
+
+      <div className="bg-white p-6 rounded-lg shadow mt-6">
+        <h3 className="text-xl font-semibold text-[#7472E0] mb-4">Feedback</h3>
+        {room.feedback.length ? (
+          room.feedback.map((fb, idx) => (
+            <div key={idx} className="border-b pb-4 mb-4">
+              <p className="text-sm text-gray-600">By: {fb.user.username}</p>
+              <p className="text-gray-800">{fb.comment}</p>
+              <p className="text-yellow-500 flex items-center">
+                <FaStar className="mr-1" />
+                {fb.rating} / 5
+              </p>
+              <p className="text-xs text-gray-500">{new Date(fb.date).toLocaleString()}</p>
+            </div>
+          ))
+        ) : (
+          <p className="text-gray-600 italic">No feedback yet</p>
+        )}
       </div>
     </div>
   );

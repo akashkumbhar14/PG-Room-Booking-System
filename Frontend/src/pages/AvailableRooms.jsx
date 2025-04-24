@@ -24,8 +24,12 @@ const allFacilities = Object.keys(facilityIcons);
 const AvailableRooms = () => {
   const [rooms, setRooms] = useState([]);
   const [priceRange, setPriceRange] = useState(10000);
-  const [statusFilter, setStatusFilter] = useState("All");
   const [selectedFacilities, setSelectedFacilities] = useState([]);
+<<<<<<< HEAD
+=======
+  const [tempPriceRange, setTempPriceRange] = useState(10000);
+  const [tempSelectedFacilities, setTempSelectedFacilities] = useState([]);
+>>>>>>> 44fcaaaef96478cee2ba03768fed7bee0a6f97bb
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -37,11 +41,24 @@ const AvailableRooms = () => {
 
       const params = {
         maxPrice: priceRange,
+<<<<<<< HEAD
         ...(statusFilter !== "All" && { status: statusFilter }),
         ...(selectedFacilities.length > 0 && { facilities: selectedFacilities.join(",") }),
       };
 
       const response = await axios.get("http://localhost:8000/api/v1/rooms/available", { params });
+=======
+        ...(selectedFacilities.length > 0 && {
+          facilities: selectedFacilities.join(","),
+        }),
+      };
+
+      const response = await axios.get(
+        "http://localhost:8000/api/v1/rooms/available",
+        { params }
+      );
+
+>>>>>>> 44fcaaaef96478cee2ba03768fed7bee0a6f97bb
       setRooms(response.data.data);
       setLoading(false);
     } catch (err) {
@@ -53,10 +70,14 @@ const AvailableRooms = () => {
 
   useEffect(() => {
     fetchRooms();
+<<<<<<< HEAD
   }, [priceRange, statusFilter, selectedFacilities]);
+=======
+  }, [priceRange, selectedFacilities]);
+>>>>>>> 44fcaaaef96478cee2ba03768fed7bee0a6f97bb
 
   const handleFacilityChange = (facility) => {
-    setSelectedFacilities((prev) =>
+    setTempSelectedFacilities((prev) =>
       prev.includes(facility)
         ? prev.filter((f) => f !== facility)
         : [...prev, facility]
@@ -66,6 +87,14 @@ const AvailableRooms = () => {
   const handleRoomClick = (id) => {
     navigate(`/rooms/${id}`);
   };
+<<<<<<< HEAD
+=======
+
+  const applyFilters = () => {
+    setPriceRange(tempPriceRange);
+    setSelectedFacilities(tempSelectedFacilities);
+  };
+>>>>>>> 44fcaaaef96478cee2ba03768fed7bee0a6f97bb
 
   return (
     <div className="px-4 py-10 bg-gray-50 min-h-screen">
@@ -85,16 +114,17 @@ const AvailableRooms = () => {
               min="1000"
               max="10000"
               step="500"
-              value={priceRange}
-              onChange={(e) => setPriceRange(Number(e.target.value))}
+              value={tempPriceRange}
+              onChange={(e) => setTempPriceRange(Number(e.target.value))}
               className="w-full accent-[#7472E0]"
             />
             <span className="block text-[#7472E0] font-semibold mt-1">
-              Rs. {priceRange}
+              Rs. {tempPriceRange}
             </span>
           </div>
 
           <div className="mb-6">
+<<<<<<< HEAD
             <label className="block font-medium text-gray-700 mb-1">Status</label>
             <select
               value={statusFilter}
@@ -108,6 +138,8 @@ const AvailableRooms = () => {
           </div>
 
           <div>
+=======
+>>>>>>> 44fcaaaef96478cee2ba03768fed7bee0a6f97bb
             <label className="block font-medium text-gray-700 mb-2">Facilities</label>
             <div className="grid grid-cols-2 gap-2 text-sm">
               {allFacilities.map((facility) => (
@@ -115,7 +147,7 @@ const AvailableRooms = () => {
                   <input
                     type="checkbox"
                     value={facility}
-                    checked={selectedFacilities.includes(facility)}
+                    checked={tempSelectedFacilities.includes(facility)}
                     onChange={() => handleFacilityChange(facility)}
                     className="accent-[#7472E0]"
                   />
@@ -124,6 +156,13 @@ const AvailableRooms = () => {
               ))}
             </div>
           </div>
+
+          <button
+            onClick={applyFilters}
+            className="w-full mt-4 bg-[#7472E0] text-white py-2 px-4 rounded-lg hover:bg-[#5e5bcf] transition"
+          >
+            Apply Filters
+          </button>
         </div>
 
         {/* Room Grid */}
