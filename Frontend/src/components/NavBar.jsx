@@ -5,11 +5,11 @@ import { useNavigate } from "react-router-dom";
 const Navbar = () => {
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem("token"));
+  const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem("usertoken") || !!localStorage.getItem("ownertoken"));
 
   useEffect(() => {
     const checkLoginStatus = () => {
-      const token = localStorage.getItem("token");
+      const token = (localStorage.getItem("usertoken") || localStorage.getItem("ownertoken"));
       setIsLoggedIn(!!token);
     };
 
@@ -26,9 +26,9 @@ const Navbar = () => {
   }, []);
 
   const handleProfileNavigation = () => {
-    if (localStorage.getItem("owner")) {
+    if (localStorage.getItem("ownertoken")) {
       navigate("/owner-profile");
-    } else if (localStorage.getItem("user")) {
+    } else if (localStorage.getItem("usertoken")) {
       navigate("/user-profile");
     }
   };
@@ -39,9 +39,9 @@ const Navbar = () => {
         <h1
           className="text-2xl md:text-3xl font-extrabold tracking-wide text-[#7472E0] cursor-pointer"
           onClick={() => {
-            if (localStorage.getItem("owner")) {
+            if (localStorage.getItem("ownertoken")) {
               navigate("/owner-profile");
-            } else if (localStorage.getItem("user")) {
+            } else if (localStorage.getItem("usertoken")) {
               navigate("/rooms");
             } else {
               navigate("/");

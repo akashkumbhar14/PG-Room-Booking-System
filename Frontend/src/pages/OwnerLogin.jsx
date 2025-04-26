@@ -3,11 +3,12 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import loginImage from "../assets/signup.png"; // Image
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline"; // Importing the eye icons
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const OwnerLogin = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({ identifier: "", password: "" });
-  const [message, setMessage] = useState({ type: "", text: "" });
   const [showPassword, setShowPassword] = useState(false);
   const [passwordFocused, setPasswordFocused] = useState(false);
 
@@ -16,7 +17,6 @@ const OwnerLogin = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setMessage({ type: "", text: "" });
 
     try {
       const payload = {
@@ -38,15 +38,11 @@ const OwnerLogin = () => {
         localStorage.setItem("ownertoken", accessToken);
         localStorage.setItem("owner", JSON.stringify(user));
 
-        setMessage({ type: "success", text: "Owner login successful!" });
+        toast.success("Owner login successful!");
         navigate("/owner-profile"); // Change this path as needed
-
       }
     } catch (error) {
-      setMessage({
-        type: "error",
-        text: error.response?.data?.message || "Login failed! Try again.",
-      });
+      toast.error(error.response?.data?.message || "Login failed! Try again.");
     }
   };
 
@@ -71,16 +67,6 @@ const OwnerLogin = () => {
           <h2 className="text-3xl font-bold text-center text-[#7472E0] mb-6">
             Owner Login
           </h2>
-
-          {message.text && (
-            <p
-              className={`text-center mb-4 ${
-                message.type === "error" ? "text-red-500" : "text-green-500"
-              }`}
-            >
-              {message.text}
-            </p>
-          )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <input
@@ -136,6 +122,7 @@ const OwnerLogin = () => {
           </p>
         </div>
       </div>
+      <ToastContainer position="top-center" autoClose={2000} />
     </div>
   );
 };

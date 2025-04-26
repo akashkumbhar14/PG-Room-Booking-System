@@ -3,11 +3,12 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import signupImg from "../assets/signup.png";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const Login = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({ email: "", password: "" });
-  const [message, setMessage] = useState({ type: "", text: "" });
   const [showPassword, setShowPassword] = useState(false);
   const [passwordFocused, setPasswordFocused] = useState(false);
 
@@ -16,12 +17,10 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setMessage({ type: "", text: "" });
 
     try {
-
       const response = await axios.post(
-        "/api/v1/users/login", 
+        "/api/v1/users/login",
         formData,
         {
           headers: {
@@ -31,29 +30,21 @@ const Login = () => {
       );
 
       if (response.status === 200) {
-        // Save token & user data
         const { accessToken, user } = response.data.data;
-        console.log(response);
-        
 
         localStorage.setItem("usertoken", accessToken);
         localStorage.setItem("user", JSON.stringify(user));
 
-        setMessage({ type: "success", text: `${response.data.message}` });
-        console.log("Redirecting to /rooms");
-        setTimeout(()=>{
+        toast.success(response.data.message);
+        setTimeout(() => {
           navigate("/rooms");
-        },2000);
+        }, 1500);
       }
     } catch (error) {
       console.error("Login error:", error.response?.data || error.message);
-      setMessage({
-        type: "error",
-        text: error.response?.data?.message || "Login failed. Try again.",
-      });
+      toast.error(error.response?.data?.message || "Login failed. Try again.");
     }
   };
-
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
@@ -76,16 +67,6 @@ const Login = () => {
           <h2 className="text-3xl font-bold text-center text-[#7472E0] mb-6">
             Welcome Back
           </h2>
-
-          {message.text && (
-            <p
-              className={`text-center mb-4 ${
-                message.type === "error" ? "text-red-500" : "text-green-500"
-              }`}
-            >
-              {message.text}
-            </p>
-          )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <input
@@ -138,6 +119,7 @@ const Login = () => {
           </p>
         </div>
       </div>
+      <ToastContainer position="top-center" autoClose={2000} />
     </div>
   );
 };
