@@ -96,7 +96,7 @@ const OwnerProfile = () => {
           to="/add-room"
           className="flex items-center gap-2 bg-[#7472E0] text-white px-5 py-2.5 rounded-lg hover:bg-[#5d5bd1] transition text-sm"
         >
-          <FaPlus /> Add Room
+          <FaPlus /> Add New Room
         </Link>
       </div>
 
