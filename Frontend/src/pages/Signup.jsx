@@ -152,15 +152,9 @@ const Signup = () => {
             Sign Up
           </button>
           <p className="text-center text-sm mt-4">
-            Login as User{" "}
+          Already have an account{" "}
             <a href="/user-login" className="text-[#7472E0] hover:underline">
-              User Login
-            </a>
-          </p>
-          <p className="text-center text-sm mt-1">
-             Create account as Owner{" "}
-            <a href="/owner-register" className="text-[#7472E0] hover:underline">
-              CreateOwner
+              Login
             </a>
           </p>
         </form>
