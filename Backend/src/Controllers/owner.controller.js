@@ -22,6 +22,9 @@ const generateAccessAndRefreshTokens = async(ownerId) => {
 const registerOwner = asyncHandler(async (req, res) => {
     const { fullName, email, username, password, phoneNo } = req.body;
 
+    console.log(req.body);
+    
+
     if (
         [fullName, email, username, password, phoneNo].some(
             (field) => !field || field.trim() === ""
@@ -124,7 +127,7 @@ const logoutOwner = asyncHandler(async (req, res) => {
 });
 
 const getOwnerProfile = asyncHandler( async (req, res) => {
-    const owner = await Owner.findById(req.user._id).select("-password -refreshToken");
+    const owner = await Owner.findById(req.user._id).select("-password -refreshToken").populate("rooms");
 
     if (!owner) {
         throw new ApiError(404,"Owner not found")

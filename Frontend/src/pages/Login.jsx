@@ -19,18 +19,31 @@ const Login = () => {
     setMessage({ type: "", text: "" });
 
     try {
-      const response = await axios.post("/api/v1/users/login", formData, {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+
+      const response = await axios.post(
+        "/api/v1/users/login", 
+        formData,
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
       if (response.status === 200) {
+        // Save token & user data
         const { accessToken, user } = response.data.data;
-        localStorage.setItem("token", accessToken);
+        console.log(response);
+        
+
+        localStorage.setItem("usertoken", accessToken);
         localStorage.setItem("user", JSON.stringify(user));
-        setMessage({ type: "success", text: "Login successful!" });
-        navigate("/rooms");
+
+        setMessage({ type: "success", text: `${response.data.message}` });
+        console.log("Redirecting to /rooms");
+        setTimeout(()=>{
+          navigate("/rooms");
+        },2000);
       }
     } catch (error) {
       console.error("Login error:", error.response?.data || error.message);

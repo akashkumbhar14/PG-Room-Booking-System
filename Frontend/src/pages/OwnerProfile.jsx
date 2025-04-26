@@ -1,105 +1,142 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+import {
+  FaEdit,
+  FaPlus,
+  FaHome,
+  FaEnvelope,
+  FaPhoneAlt,
+  FaUser,
+  FaTrash,
+} from "react-icons/fa";
+import { Link } from "react-router-dom";
 
 const OwnerProfile = () => {
-  const [owner, setOwner] = useState(null);
-  const navigate = useNavigate();
+  const [ownerData, setOwnerData] = useState(null);
 
-  const token = localStorage.getItem('token');
-
-  useEffect(() => {
-    const fetchOwnerProfile = async () => {
-      try {
-        const res = await axios.get('/api/v1/owner/profile', {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        console.log('Profile response:', res.data);
-
-        // 👇 Adjust this if your data is nested differently
-        setOwner(res.data.owner); 
-      } catch (error) {
-        console.error('Failed to fetch owner profile:', error);
+  const fetchOwnerProfile = async () => {
+    try {
+      const res = await axios.get("/api/v1/owner/profile", {
+        withCredentials: true,
+      });
+      if (res.data.success) {
+        setOwnerData(res.data.data);
       }
-    };
-
-    fetchOwnerProfile();
-  }, [token]);
-
-  const handleAddRoom = () => {
-    navigate('/add-room');
+    } catch (error) {
+      console.error("Error fetching owner profile:", error);
+    }
   };
 
-  if (!owner) {
-    return <div className="text-center mt-20 text-gray-500">Loading profile...</div>;
+  useEffect(() => {
+    fetchOwnerProfile();
+  }, []);
+
+  const handleDeleteRoom = async (roomId) => {
+    const confirmDelete = window.confirm("Are you sure you want to delete this room?");
+    if (!confirmDelete) return;
+
+    try {
+      await axios.delete(`/api/v1/rooms/${roomId}`, { withCredentials: true });
+      setOwnerData((prevData) => ({
+        ...prevData,
+        rooms: prevData.rooms.filter((room) => room._id !== roomId),
+      }));
+      alert("Room deleted successfully");
+    } catch (error) {
+      console.error("Failed to delete room:", error);
+      alert("Failed to delete room");
+    }
+  };
+
+  if (!ownerData) {
+    return <div className="text-center py-10">Loading profile...</div>;
   }
 
-  // ✅ Safely extract values from owner
-  const {
-    fullName = '',
-    email = '',
-    username = '',
-    phoneNo = '',
-    rooms = [],
-    profileImage = '',
-  } = owner;
-
   return (
-    <div className="max-w-6xl mx-auto p-6">
-      {/* Profile Info */}
-      <div className="bg-white shadow-xl rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between mb-8">
-        <div className="flex items-center space-x-4">
-          <img
-            src={profileImage || '/default-avatar.png'}
-            alt="Profile"
-            className="w-24 h-24 rounded-full object-cover border-2 border-[#7472E0]"
-          />
+    <div className="max-w-6xl mx-auto px-6 py-12">
+      {/* Header */}
+      <div className="mb-10">
+        <h2 className="text-4xl font-bold text-[#7472E0] mb-2">Owner Profile</h2>
+        <p className="text-gray-600">
+          Manage your property listings and profile information
+        </p>
+      </div>
+
+      {/* Owner Info */}
+      <div className="bg-white rounded-2xl shadow-lg p-8 mb-12 grid sm:grid-cols-2 gap-6">
+        <div className="flex items-start gap-4">
+          <FaUser className="text-[#7472E0] text-xl mt-1" />
           <div>
-            <h2 className="text-2xl font-bold text-gray-800">{fullName}</h2>
-            <p className="text-gray-600">Username: {username}</p>
-            <p className="text-gray-600">Email: {email}</p>
-            <p className="text-gray-600">Phone: {phoneNo}</p>
+            <p className="font-semibold text-gray-700 text-sm">Name</p>
+            <p className="text-lg">{ownerData.fullName}</p>
           </div>
         </div>
-        <button
-          onClick={handleAddRoom}
-          className="mt-6 md:mt-0 px-6 py-3 bg-[#7472E0] text-white font-semibold rounded-lg hover:bg-[#5e5ccf] transition-all duration-200"
+        <div className="flex items-start gap-4">
+          <FaEnvelope className="text-[#7472E0] text-xl mt-1" />
+          <div>
+            <p className="font-semibold text-gray-700 text-sm">Email</p>
+            <p className="text-lg">{ownerData.email}</p>
+          </div>
+        </div>
+        <div className="flex items-start gap-4">
+          <FaPhoneAlt className="text-[#7472E0] text-xl mt-1" />
+          <div>
+            <p className="font-semibold text-gray-700 text-sm">Contact</p>
+            <p className="text-lg">{ownerData.phoneNo}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Properties Section */}
+      <div className="mb-6 flex items-center justify-between">
+        <h3 className="text-2xl font-semibold text-gray-800 flex items-center gap-2">
+          <FaHome className="text-[#7472E0]" /> Listed Properties
+        </h3>
+        <Link
+          to="/add-room"
+          className="flex items-center gap-2 bg-[#7472E0] text-white px-5 py-2.5 rounded-lg hover:bg-[#5d5bd1] transition text-sm"
         >
           + Add Room
         </button>
       </div>
 
-      {/* Listed Rooms */}
-      <h3 className="text-xl font-semibold text-gray-800 mb-4">Your Listed Properties</h3>
-      {rooms.length === 0 ? (
-        <p className="text-gray-500">You haven't added any rooms yet.</p>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {rooms.map((room) => (
-            <div key={room._id} className="bg-white shadow-md rounded-xl overflow-hidden hover:shadow-lg transition-all duration-300">
-              <img
-                src={room.images?.[0] || '/room-placeholder.jpg'}
-                alt={room.title}
-                className="w-full h-48 object-cover"
-              />
-              <div className="p-4">
-                <h4 className="text-lg font-semibold text-gray-800 mb-1">{room.title}</h4>
-                <p className="text-gray-500 text-sm mb-2 truncate">{room.description}</p>
-                <p className="text-[#7472E0] font-bold">₹{room.price} / month</p>
-                <button
-                  onClick={() => navigate(`/edit-room/${room._id}`)}
-                  className="mt-3 text-sm text-[#7472E0] hover:underline"
-                >
-                  Edit Room
-                </button>
-              </div>
-            </div>
-          ))}
+      {/* Room Cards */}
+      {ownerData.rooms.map((room) => (
+        <div
+          key={room._id}
+          onClick={() => window.location.href = `/rooms/${room._id}`}
+          className="bg-white rounded-xl shadow-md p-6 border border-gray-100 hover:shadow-lg transition relative cursor-pointer"
+        >
+          <h4 className="text-xl font-semibold text-[#7472E0] mb-2">{room.name}</h4>
+          <p className="text-sm text-gray-600 mb-1">
+            <span className="font-medium text-gray-700">Location:</span> {room.address}
+          </p>
+          <p className="text-sm text-gray-600 mb-4">
+            <span className="font-medium text-gray-700">Price:</span> ₹{room.price}
+          </p>
+
+          <div className="flex justify-between items-center mt-4">
+            <Link
+              to={`/edit-room/${room._id}`}
+              onClick={(e) => e.stopPropagation()}
+              className="inline-flex items-center gap-2 text-[#7472E0] text-sm font-medium hover:underline"
+            >
+              <FaEdit /> Edit Room Details
+            </Link>
+
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleDeleteRoom(room._id);
+              }}
+              className="inline-flex items-center gap-2 text-red-500 hover:text-red-600 text-sm font-medium"
+            >
+              <FaTrash /> Delete
+            </button>
+          </div>
         </div>
-      )}
+      ))}
+
     </div>
   );
 };
