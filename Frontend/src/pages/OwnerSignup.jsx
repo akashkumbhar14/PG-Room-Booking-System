@@ -2,6 +2,7 @@ import React from "react";
 import { useForm } from "react-hook-form";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import signupImg from "../assets/signup.png";
 
 const OwnerSignup = () => {
   const navigate = useNavigate();
@@ -38,7 +39,17 @@ const OwnerSignup = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+    <div className="min-h-screen bg-gray-100 flex items-center justify-between">
+
+      {/* Left Image Side */}
+            <div className="hidden md:flex w-1/2 h-full">
+              <img
+                src={signupImg}
+                alt="Signup Visual"
+                className="object-cover w-full h-full"
+              />
+            </div>
+
       <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
         <h2 className="text-2xl font-bold mb-6 text-center text-[#7472E0]">Owner Signup</h2>
         <form onSubmit={handleSubmit(onSubmit)}>
@@ -125,16 +136,7 @@ const OwnerSignup = () => {
               className="text-[#7472E0] cursor-pointer hover:underline"
               onClick={() => navigate("/owner-login")}
             >
-              Login here
-            </span>
-          </p>
-          <p className="text-center text-sm mt-4">
-            Login as a User{" "}
-            <span
-              className="text-[#7472E0] cursor-pointer hover:underline"
-              onClick={() => navigate("/user-login")}
-            >
-              User Login
+              Login
             </span>
           </p>
         </form>
