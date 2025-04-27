@@ -46,7 +46,7 @@ const OwnerSignup = () => {
     setEmailStatus("");
 
     try {
-      await axios.post("http://localhost:3000/send-code", { email });
+      await axios.post("/api/v1/verify/send-code", { email });
       setStep(2);
       setTimer(60);
       setCountdownActive(true);
@@ -67,7 +67,7 @@ const OwnerSignup = () => {
     }
 
     try {
-      await axios.post("http://localhost:3000/verify-code", { email, code });
+      await axios.post("/api/v1/verify/verify-code", { email, code });
       setEmailVerified(true);
       setStep(3);
       toast.success("Email verified successfully!");

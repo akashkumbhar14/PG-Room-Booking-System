@@ -7,7 +7,7 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "dev": "concurrently \"nodemon -r dotenv/config --experimental-json-modules src/index.js\" \"nodemon verifyMail.js\""
+    "dev": "nodemon -r dotenv/config --experimental-json-modules src/index.js"
   },
   "devDependencies": {
     "concurrently": "^9.1.2",
