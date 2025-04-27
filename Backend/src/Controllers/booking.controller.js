@@ -4,8 +4,8 @@ import mongoose from "mongoose";
 import { ApiResponse } from "../utils/ApiResponse.js";
 
 const createBooking = asyncHandler(async (req, res) => {
-    console.log(req.params,"  ",req.user);
-    
+    console.log(req.params, "  ", req.user);
+
     const { roomId } = req.params;
     const user = req.user._id;
 
@@ -16,8 +16,8 @@ const createBooking = asyncHandler(async (req, res) => {
     }
 
     // Check if booking already exists for this user and room
-    const existingBooking = await Booking.findOne({ 
-        user, 
+    const existingBooking = await Booking.findOne({
+        user,
         room: roomId,
         status: { $nin: ['cancel', 'rejected', 'completed'] } // Only count active bookings
     });
@@ -42,4 +42,30 @@ const createBooking = asyncHandler(async (req, res) => {
     res.status(200).json(new ApiResponse(200, populatedBooking, "booked registered successfully"));
 });
 
-export { createBooking };
+const updateBookingStatus = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    const booking = await Booking.findByIdAndUpdate(
+        id,
+        { status },
+        { new: true }
+    ).populate('user', 'name email');
+
+    await sendNotification({
+        userId: booking.user._id,
+        message: `Your booking has been ${status}`,
+        type: 'booking-status',
+        bookingId: booking._id
+    });
+
+    res.status(200).json({
+        success: true,
+        data: booking
+    });
+});
+
+export { 
+    createBooking,
+    updateBookingStatus
+ };
