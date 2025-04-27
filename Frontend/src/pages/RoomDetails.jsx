@@ -6,12 +6,22 @@ import { Navigation, Pagination } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
-import { FaMapMarkerAlt, FaUserCircle, FaStar, FaCheckCircle, FaTimesCircle } from "react-icons/fa";
+import { toast, ToastContainer } from "react-toastify"; // Importing ToastContainer
+import "react-toastify/dist/ReactToastify.css";
+
+import {
+  FaMapMarkerAlt,
+  FaUserCircle,
+  FaStar,
+  FaCheckCircle,
+  FaTimesCircle,
+} from "react-icons/fa";
 
 const RoomDetails = () => {
   const { id } = useParams();
   const [room, setRoom] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [bookingLoading, setBookingLoading] = useState(false);
 
   const fetchRoomDetails = async () => {
     try {
@@ -19,6 +29,7 @@ const RoomDetails = () => {
       setRoom(res.data.data);
     } catch (error) {
       console.error("Error fetching room data", error);
+      toast.error("Failed to load room details.");
     } finally {
       setLoading(false);
     }
@@ -39,8 +50,59 @@ const RoomDetails = () => {
     </div>
   );
 
+  const handleBooking = async () => {
+    try {
+      setBookingLoading(true);
+      const usertoken = localStorage.getItem("usertoken");
+
+      if (!usertoken) {
+        toast.error("You must be logged in to book a room.");
+        return;
+      }
+
+      const roomId = id; // room ID from the route
+
+      const res = await axios.post(
+        `http://localhost:8000/api/v1/booking/create-booking/${roomId}`, // backend endpoint
+        {}, // Empty body because backend doesn't expect any data
+        {
+          headers: {
+            Authorization: `Bearer ${usertoken}`, // Authorization header
+          },
+        }
+      );
+
+      // Log the full response to check if data is returned correctly
+      console.log("Booking response:", res);
+
+      // Check if the backend response contains the expected structure
+      if (res.status === 200) {
+        toast.success("Room booked successfully!");
+      } else {
+        toast.error("Booking failed, please try again.");
+      }
+    } catch (error) {
+      console.error("Booking error:", error);
+
+      // Detailed error handling
+      if (error.response) {
+        console.log("Response Error:", error.response); // Log full error response
+        toast.error(error.response.data.message); // Display the backend error message
+      } else if (error.request) {
+        console.log("Request Error:", error.request);
+        toast.error("No response from server. Please try again later.");
+      } else {
+        console.error("Error:", error.message);
+        toast.error("Something went wrong. Try again.");
+      }
+    } finally {
+      setBookingLoading(false);
+    }
+  };
+
   if (loading) return <div className="p-8 text-center">Loading...</div>;
-  if (!room) return <div className="p-8 text-center text-gray-700">Room not found.</div>;
+  if (!room)
+    return <div className="p-8 text-center text-gray-700">Room not found.</div>;
 
   return (
     <div className="max-w-5xl mx-auto p-6">
@@ -77,7 +139,9 @@ const RoomDetails = () => {
         </div>
 
         <div className="bg-white p-4 rounded-lg shadow">
-          <h3 className="text-xl font-semibold text-[#7472E0] mb-2">Owner Info</h3>
+          <h3 className="text-xl font-semibold text-[#7472E0] mb-2">
+            Owner Info
+          </h3>
           {room.owner ? (
             <>
               <p className="flex items-center gap-2 text-gray-700">
@@ -92,7 +156,9 @@ const RoomDetails = () => {
         </div>
 
         <div className="bg-white p-4 rounded-lg shadow">
-          <h3 className="text-xl font-semibold text-[#7472E0] mb-2">Room Status</h3>
+          <h3 className="text-xl font-semibold text-[#7472E0] mb-2">
+            Room Status
+          </h3>
           <span
             className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
               room.status === "Available"
@@ -114,9 +180,13 @@ const RoomDetails = () => {
       </div>
 
       <div className="bg-white p-6 rounded-lg shadow">
-        <h3 className="text-xl font-semibold text-[#7472E0] mb-4">Facilities</h3>
+        <h3 className="text-xl font-semibold text-[#7472E0] mb-4">
+          Facilities
+        </h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-          {room.facilities.map((facility, index) => renderFacility(facility, true))}
+          {room.facilities.map((facility, index) =>
+            renderFacility(facility, true)
+          )}
         </div>
       </div>
 
@@ -131,13 +201,29 @@ const RoomDetails = () => {
                 <FaStar className="mr-1" />
                 {fb.rating} / 5
               </p>
-              <p className="text-xs text-gray-500">{new Date(fb.date).toLocaleString()}</p>
+              <p className="text-xs text-gray-500">
+                {new Date(fb.date).toLocaleString()}
+              </p>
             </div>
           ))
         ) : (
           <p className="text-gray-600 italic">No feedback yet</p>
         )}
       </div>
+      {/* Booking button */}
+      {room.status === "Available" && (
+        <div className="text-center mt-8">
+          <button
+            onClick={handleBooking}
+            disabled={bookingLoading}
+            className="px-6 py-3 bg-[#7472E0] hover:bg-[#5b59c7] text-white rounded-full font-semibold text-lg transition duration-300"
+          >
+            {bookingLoading ? "Booking..." : "Book Now"}
+          </button>
+        </div>
+      )}
+
+      <ToastContainer position="top-center" autoClose={2000} />
     </div>
   );
 };
