@@ -1,13 +1,15 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
-import { useNavigate } from "react-router-dom";
-import { Eye, EyeOff } from "lucide-react";
+ import axios from "axios";
+ import { useNavigate } from "react-router-dom";
+ import { Eye, EyeOff } from "lucide-react";
+ import { FaUser, FaEnvelope, FaPhoneAlt, FaLock, FaSignOutAlt, FaHome } from "react-icons/fa";
 
-const UserProfile = () => {
+ const UserProfile = () => {
   const navigate = useNavigate();
 
   const [userData, setUserData] = useState({
     fullName: "",
+    username: "", // Added username field
     email: "",
     phoneNo: ""
   });
@@ -32,14 +34,14 @@ const UserProfile = () => {
           withCredentials: true
         });
         setUserData(res.data.data);
-        // setAllocatedRooms(res.data.data.rooms || []);
+        setAllocatedRooms(res.data.data.rooms || []);
       } catch (err) {
         console.error(err);
         navigate("/login");
       }
     };
     fetchUserProfile();
-  }, []);
+  }, [navigate]);
 
   const handleInputChange = (e) => {
     setUserData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -82,74 +84,112 @@ const UserProfile = () => {
     }
   };
 
-  const handleLogout = () => {
-    localStorage.clear();
-    navigate("/");
+  const handleLogout = async () => {
+    try {
+      await axios.post("/api/v1/owner/logout", {}, { withCredentials: true });
+      localStorage.clear();
+      window.location.href = "/";
+    } catch (error) {
+      console.error("Logout failed:", error);
+      alert("Failed to log out");
+    }
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 py-10 px-4">
-      <div className="max-w-4xl mx-auto space-y-8">
-        {/* Header with messages */}
-        {(message || error) && (
-          <div className={`p-4 rounded-lg ${message ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-            {message || error}
+    <div className="max-w-6xl mx-auto px-6 py-12">
+      {/* Header */}
+      <div className="mb-8 flex justify-between items-center">
+        <h2 className="text-3xl font-semibold text-gray-800">Your Profile</h2>
+        <button
+          onClick={handleLogout}
+          className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 flex items-center gap-2"
+        >
+          <FaSignOutAlt /> Log Out
+        </button>
+      </div>
+
+      {/* Alert Messages */}
+      {(message || error) && (
+        <div className={`mb-6 p-3 rounded-md ${message ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+          {message || error}
+        </div>
+      )}
+
+      {/* Profile Information */}
+      <div className="bg-white shadow rounded-lg mb-8 p-6">
+        <h3 className="text-xl font-semibold text-gray-700 mb-4">Personal Information</h3>
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Full Name */}
+            <div>
+              <label className="block text-sm font-medium text-gray-600">Full Name</label>
+              {editMode ? (
+                <input
+                  type="text"
+                  name="fullName"
+                  value={userData.fullName}
+                  onChange={handleInputChange}
+                  className="mt-1 block w-full rounded-md border-2 border-[#7472E0] shadow-sm focus:border-[#7472E0] focus:ring-[#7472E0] sm:text-sm p-2 bg-gray-50"
+                />
+              ) : (
+                <p className="mt-1 text-sm text-gray-900">{userData.fullName}</p>
+              )}
+            </div>
+
+            {/* Username */}
+            <div>
+              <label className="block text-sm font-medium text-gray-600">Username</label>
+              {editMode ? (
+                <input
+                  type="tel"
+                  name="username"
+                  value={userData.username}
+                  onChange={handleInputChange}
+                  className="mt-1 block w-full rounded-md border-2 border-[#7472E0] shadow-sm focus:border-[#7472E0] focus:ring-[#7472E0] sm:text-sm p-2 bg-gray-50"
+                />
+              ) : (
+                <p className="mt-1 text-sm text-gray-900">{userData.username}</p>
+              )}
+            </div>
+
+            {/* Email Address */}
+            <div>
+              <label className="block text-sm font-medium text-gray-600">Email Address</label>
+              <p className="mt-1 text-sm text-gray-900">{userData.email}</p>
+            </div>
+
+            {/* Phone Number */}
+            <div>
+              <label className="block text-sm font-medium text-gray-600">Phone Number</label>
+              {editMode ? (
+                <input
+                  type="tel"
+                  name="phoneNo"
+                  value={userData.phoneNo}
+                  onChange={handleInputChange}
+                  className="mt-1 block w-full rounded-md border-2 border-[#7472E0] shadow-sm focus:border-[#7472E0] focus:ring-[#7472E0] sm:text-sm p-2 bg-gray-50"
+                />
+              ) : (
+                <p className="mt-1 text-sm text-gray-900">{userData.phoneNo}</p>
+              )}
+            </div>
           </div>
-        )}
-        
-        {/* Profile Section - Top Div */}
-        <div className="bg-white rounded-2xl shadow-lg p-8">
-          <h2 className="text-3xl font-bold text-[#7472E0] mb-6">Your Profile</h2>
 
-          <form onSubmit={handleUpdateProfile} className="space-y-6">
-            <div>
-              <label className="block text-sm font-semibold">Full Name</label>
-              <input
-                type="text"
-                name="fullName"
-                value={userData.fullName}
-                onChange={handleInputChange}
-                disabled={!editMode}
-                className="mt-1 w-full border rounded-lg p-3 focus:ring-[#7472E0] focus:border-[#7472E0]"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold">Email</label>
-              <input
-                type="email"
-                name="email"
-                value={userData.email}
-                onChange={handleInputChange}
-                disabled={!editMode}
-                className="mt-1 w-full border rounded-lg p-3 focus:ring-[#7472E0] focus:border-[#7472E0]"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold">Phone Number</label>
-              <input
-                type="tel"
-                name="phoneNo"
-                value={userData.phoneNo}
-                onChange={handleInputChange}
-                disabled={!editMode}
-                className="mt-1 w-full border rounded-lg p-3 focus:ring-[#7472E0] focus:border-[#7472E0]"
-              />
-            </div>
-
+          {/* Edit/Save Buttons */}
+          <div className="mt-6">
             {editMode ? (
-              <div className="flex gap-4">
+              <div className="flex gap-2">
                 <button
                   type="submit"
-                  className="bg-[#7472E0] text-white px-6 py-3 rounded-lg hover:opacity-90 font-medium transition-all"
+                  onClick={handleUpdateProfile}
+                  className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-[#7472E0] hover:bg-[#5d5bd1] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#7472E0]"
                 >
                   Save Changes
                 </button>
                 <button
                   type="button"
                   onClick={() => setEditMode(false)}
-                  className="bg-gray-400 text-white px-6 py-3 rounded-lg hover:bg-gray-500 font-medium transition-all"
+                  className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#7472E0]"
                 >
                   Cancel
                 </button>
@@ -158,128 +198,117 @@ const UserProfile = () => {
               <button
                 type="button"
                 onClick={() => setEditMode(true)}
-                className="bg-[#7472E0] text-white px-6 py-3 rounded-lg hover:opacity-90 font-medium transition-all"
+                className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#7472E0]"
               >
-                Edit Profile
+                <FaUser className="mr-2" /> Edit Profile
               </button>
             )}
-          </form>
-
-          {/* Styled Password Section */}
-          <div className="mt-10 pt-6 border-t border-gray-200">
-            <button
-              onClick={() => setShowPasswordForm((prev) => !prev)}
-              className="flex items-center justify-center w-full md:w-auto px-6 py-3 bg-[#7472E0] bg-opacity-10 text-[#7472E0] rounded-lg hover:bg-opacity-20 font-medium transition-all"
-            >
-              {showPasswordForm ? "Hide Password Form" : "Change Password"}
-            </button>
-
-            {showPasswordForm && (
-              <form onSubmit={handleChangePassword} className="mt-6 space-y-4 bg-gray-50 rounded-xl p-6">
-                <div className="relative">
-                  <label className="block text-sm font-medium">Current Password</label>
-                  <div className="relative">
-                    <input
-                      type={showOldPassword ? "text" : "password"}
-                      name="oldPassword"
-                      value={passwordData.oldPassword}
-                      onChange={handlePasswordChange}
-                      className="mt-1 w-full border rounded-lg p-3 pr-10 focus:ring-[#7472E0] focus:border-[#7472E0]"
-                    />
-                    {passwordData.oldPassword && (
-                      <button
-                        type="button"
-                        onClick={() => setShowOldPassword(!showOldPassword)}
-                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500"
-                      >
-                        {showOldPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                      </button>
-                    )}
-                  </div>
-                </div>
-
-                <div className="relative">
-                  <label className="block text-sm font-medium">New Password</label>
-                  <div className="relative">
-                    <input
-                      type={showNewPassword ? "text" : "password"}
-                      name="newPassword"
-                      value={passwordData.newPassword}
-                      onChange={handlePasswordChange}
-                      className="mt-1 w-full border rounded-lg p-3 pr-10 focus:ring-[#7472E0] focus:border-[#7472E0]"
-                    />
-                    {passwordData.newPassword && (
-                      <button
-                        type="button"
-                        onClick={() => setShowNewPassword(!showNewPassword)}
-                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500"
-                      >
-                        {showNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                      </button>
-                    )}
-                  </div>
-                </div>
-
-                <button
-                  type="submit"
-                  className="bg-[#7472E0] text-white px-6 py-3 rounded-lg hover:opacity-90 font-medium transition-all"
-                >
-                  Update Password
-                </button>
-              </form>
-            )}
-          </div>
-
-          <div className="mt-10 pt-6 border-t border-gray-200">
-            <button
-              onClick={handleLogout}
-              className="px-6 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 font-medium transition-all"
-            >
-              Logout
-            </button>
           </div>
         </div>
+      </div>
 
-        {/* Allocated Rooms Section - Bottom Div */}
-        <div className="bg-white rounded-2xl shadow-lg p-8">
-          <h2 className="text-3xl font-bold text-[#7472E0] mb-6">Allocated Rooms</h2>
+      {/* Change Password Section */}
+      <div className="bg-white shadow rounded-lg mb-8 p-6">
+        <h3 className="text-xl font-semibold text-gray-700 mb-4">Change Password</h3>
+        <div>
+          <button
+            onClick={() => setShowPasswordForm((prev) => !prev)}
+            className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#7472E0]"
+          >
+            <FaLock className="mr-2" /> {showPasswordForm ? "Hide Password Form" : "Change Password"}
+          </button>
 
-          {allocatedRooms.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {allocatedRooms.map((room, idx) => (
-                <div key={idx} className="border p-4 rounded-lg shadow-sm hover:shadow-md transition-all">
-                  <h4 className="font-semibold text-lg">{room.name || room.roomNumber || `Room ${idx+1}`}</h4>
-                  <p className="text-sm text-gray-600">{room.address || room.building || "Main Building"}</p>
-                  <div className="flex justify-between items-center mt-2">
-                    <span className="text-sm text-gray-500">
-                      {room.type || "Standard Room"}
-                    </span>
-                    <button 
-                      onClick={() => navigate(`/rooms/${room._id || room.id}`)}
-                      className="text-[#7472E0] hover:underline text-sm font-medium"
-                    >
-                      View Details
-                    </button>
-                  </div>
+          {showPasswordForm && (
+            <form onSubmit={handleChangePassword} className="mt-6 space-y-4">
+              <div>
+                <label htmlFor="oldPassword" className="block text-sm font-medium text-gray-700">
+                  Current Password
+                </label>
+                <div className="mt-1 relative rounded-md shadow-sm">
+                  <input
+                    type={showOldPassword ? "text" : "password"}
+                    name="oldPassword"
+                    id="oldPassword"
+                    value={passwordData.oldPassword}
+                    onChange={handlePasswordChange}
+                    className="shadow-sm focus:ring-[#7472E0] focus:border-[#7472E0] block w-full sm:text-sm border-gray-300 rounded-md pr-10"
+                  />
+                  {passwordData.oldPassword && (
+                    <div className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 cursor-pointer" onClick={() => setShowOldPassword(!showOldPassword)}>
+                      {showOldPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                    </div>
+                  )}
                 </div>
-              ))}
-            </div>
-          ) : (
-            <div className="bg-gray-50 p-8 rounded-xl text-center border border-gray-200">
-              <h3 className="text-xl font-medium text-gray-700 mb-2">No Allocated Rooms</h3>
-              <p className="text-gray-500">You don't have any rooms allocated to you at the moment.</p>
-              <button 
-                onClick={() => navigate('/rooms')}
-                className="mt-4 px-6 py-3 bg-[#7472E0] text-white rounded-lg hover:opacity-90 font-medium transition-all"
+              </div>
+
+              <div>
+                <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700">
+                  New Password
+                </label>
+                <div className="mt-1 relative rounded-md shadow-sm">
+                  <input
+                    type={showNewPassword ? "text" : "password"}
+                    name="newPassword"
+                    id="newPassword"
+                    value={passwordData.newPassword}
+                    onChange={handlePasswordChange}
+                    className="shadow-sm focus:ring-[#7472E0] focus:border-[#7472E0] block w-full sm:text-sm border-gray-300 rounded-md pr-10"
+                  />
+                  {passwordData.newPassword && (
+                    <div className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 cursor-pointer" onClick={() => setShowNewPassword(!showNewPassword)}>
+                      {showNewPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-[#7472E0] hover:bg-[#5d5bd1] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#7472E0]"
               >
-                Browse Available Rooms
+                Update Password
               </button>
-            </div>
+            </form>
           )}
         </div>
       </div>
+
+      {/* Allocated Rooms Section */}
+      <div className="bg-white shadow rounded-lg p-6">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-xl font-semibold text-gray-700 flex items-center gap-2">
+            <FaHome className="text-[#7472E0]" /> Allocated Rooms
+          </h3>
+          {/* You might not want an "Add Room" button here for users */}
+        </div>
+        {allocatedRooms.length > 0 ? (
+          <ul className="divide-y divide-gray-200">
+            {allocatedRooms.map((room) => (
+              <li key={room._id || room.id} className="py-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-900">{room.name || room.roomNumber || `Room`}</p>
+                    <p className="text-sm text-gray-500 truncate">{room.address || room.building || "Main Building"}</p>
+                    <p className="text-sm text-gray-500">{room.type || "Standard Room"}</p>
+                  </div>
+                  <div className="ml-4 flex-shrink-0">
+                    <button
+                      onClick={() => navigate(`/rooms/${room._id || room.id}`)}
+                      className="inline-flex items-center shadow-sm px-3 py-2 border border-gray-300 text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#7472E0]"
+                    >
+                      View Details <FaHome className="ml-2" />
+                    </button>
+                  </div>
+                </div>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <div className="py-6 text-center text-gray-500">No rooms currently allocated to you.</div>
+        )}
+      </div>
     </div>
   );
-};
+ };
 
-export default UserProfile;
+ export default UserProfile;
