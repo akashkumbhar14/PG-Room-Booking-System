@@ -1,16 +1,26 @@
 import { Notification } from "../models/notification.model.js";
 
-export const sendNotification = async ({ userId, message, type, bookingId }) => {
+export const sendNotification = async (io, {
+  receiverId,
+  receiverModel,
+  message,
+  type,
+  bookingId,
+  roomId
+}) => {
   const notification = await Notification.create({
-    user: userId,
+    receiver: receiverId,
+    receiverModel,
     message,
     type,
-    booking: bookingId
+    booking: bookingId,
+    room: roomId,
+    read: false
   });
 
-  // Get io instance
-  const io = req.app.get('io');
-  io.to(`user-${userId}`).emit('new-notification', notification);
+  console.log(`🔔 Notification sent to ${receiverModel}-${receiverId}`);
+
+  io.to(`${receiverModel}-${receiverId}`).emit('new-notification', notification);
 
   return notification;
 };

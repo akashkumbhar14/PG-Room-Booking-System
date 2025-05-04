@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
 import { Swiper, SwiperSlide } from "swiper/react";
@@ -6,9 +6,9 @@ import { Navigation, Pagination } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
-import { toast, ToastContainer } from "react-toastify"; // Importing ToastContainer
+import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-
+import { SocketContext } from "../context/SocketContext.jsx";
 import {
   FaMapMarkerAlt,
   FaUserCircle,
@@ -22,6 +22,7 @@ const RoomDetails = () => {
   const [room, setRoom] = useState(null);
   const [loading, setLoading] = useState(true);
   const [bookingLoading, setBookingLoading] = useState(false);
+  const socket = useContext(SocketContext);
 
   const fetchRoomDetails = async () => {
     try {
@@ -60,34 +61,28 @@ const RoomDetails = () => {
         return;
       }
 
-      const roomId = id; // room ID from the route
+      const roomId = id;
 
       const res = await axios.post(
-        `http://localhost:8000/api/v1/booking/create-booking/${roomId}`, // backend endpoint
-        {}, // Empty body because backend doesn't expect any data
+        `/api/v1/booking/create-booking/${roomId}`,
+        {},
         {
           headers: {
-            Authorization: `Bearer ${usertoken}`, // Authorization header
+            Authorization: `Bearer ${usertoken}`,
           },
         }
       );
 
-      // Log the full response to check if data is returned correctly
-      console.log("Booking response:", res);
-
-      // Check if the backend response contains the expected structure
       if (res.status === 200) {
-        toast.success("Room booked successfully!");
-      } else {
-        toast.error("Booking failed, please try again.");
+        toast.success("Room booked successfully!");        
       }
+      
     } catch (error) {
       console.error("Booking error:", error);
 
-      // Detailed error handling
       if (error.response) {
-        console.log("Response Error:", error.response); // Log full error response
-        toast.error(error.response.data.message); // Display the backend error message
+        console.log("Response Error:", error.response);
+        toast.error(error.response.data.message);
       } else if (error.request) {
         console.log("Request Error:", error.request);
         toast.error("No response from server. Please try again later.");
@@ -210,7 +205,7 @@ const RoomDetails = () => {
           <p className="text-gray-600 italic">No feedback yet</p>
         )}
       </div>
-      {/* Booking button */}
+
       {room.status === "Available" && (
         <div className="text-center mt-8">
           <button

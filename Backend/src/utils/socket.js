@@ -5,9 +5,9 @@ const initializeSocket = (io) => {
     console.log(`User connected: ${socket.id}`);
 
     // Join user-specific room
-    socket.on('join-user-room', (userId) => {
-      socket.join(`user-${userId}`);
-      console.log(`User ${userId} joined their room`);
+    socket.on('join-user-room', (roomId) => {
+      socket.join(`${roomId}`);
+      console.log(`${roomId} joined their room`);
     });
 
     socket.on('disconnect', () => {
@@ -16,16 +16,9 @@ const initializeSocket = (io) => {
   });
 };
 
-const emitNotification = (io, userId, message, bookingId) => {
-  io.to(`user-${userId}`).emit('new-notification', {
-    message,
-    bookingId,
-    timestamp: new Date()
-  });
-};
+
 
 
 export {
     initializeSocket,
-    emitNotification
 }
