@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
-import signupImg from "../assets/signup.png";
+import { Link, useNavigate } from "react-router-dom";
+import signupImg from "../assets/home.png";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -19,15 +19,11 @@ const Login = () => {
     e.preventDefault();
 
     try {
-      const response = await axios.post(
-        "/api/v1/users/login",
-        formData,
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const response = await axios.post("/api/v1/users/login", formData, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
 
       if (response.status === 200) {
         const { accessToken, user } = response.data.data;
@@ -51,13 +47,13 @@ const Login = () => {
   };
 
   return (
-    <div className="flex flex-col md:flex-row min-h-screen bg-gray-100 mb-0 pb-0">
+    <div className="flex flex-col md:flex-row min-h-screen bg-gray-100">
       {/* Left Image Side */}
       <div className="hidden md:flex w-1/2 h-full">
         <img
           src={signupImg}
           alt="Signup Visual"
-          className="object-cover w-full h-full"
+          className="object-cover w-full h-full rounded-r-2xl"
         />
       </div>
 
@@ -92,7 +88,7 @@ const Login = () => {
               />
               {(passwordFocused || formData.password) && (
                 <div
-                  className="absolute inset-y-0 right-3 flex items-center cursor-pointer"
+                  className="absolute inset-y-0 right-3 flex items-center cursor-pointer "
                   onClick={togglePasswordVisibility}
                 >
                   {showPassword ? (
@@ -113,9 +109,12 @@ const Login = () => {
 
           <p className="text-center text-sm mt-4">
             Don’t have an account?{" "}
-            <a href="/user-register" className="text-[#7472E0] hover:underline">
+            <Link
+              to="/user-register"
+              className="text-[#7472E0] hover:underline"
+            >
               Sign Up
-            </a>
+            </Link>
           </p>
         </div>
       </div>

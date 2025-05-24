@@ -1,30 +1,39 @@
 import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-import signupImg from "../assets/signup.png"; // Using signupImg for UI
+import { Eye, EyeOff } from "lucide-react";
+import signupImg from "../assets/home.png";
 
-const OwnerSignup = () => {
+const Signup = () => {
   const navigate = useNavigate();
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors },
     watch,
-    reset
   } = useForm();
 
   const [step, setStep] = useState(1);
   const [email, setEmail] = useState("");
   const [emailStatus, setEmailStatus] = useState("");
   const [isSendingCode, setIsSendingCode] = useState(false);
-  const [verificationCode, setVerificationCode] = useState(["", "", "", "", "", ""]);
+  const [verificationCode, setVerificationCode] = useState([
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+  ]);
   const [timer, setTimer] = useState(60);
   const [countdownActive, setCountdownActive] = useState(false);
   const [emailVerified, setEmailVerified] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   useEffect(() => {
     let interval;
@@ -46,7 +55,6 @@ const OwnerSignup = () => {
     setEmailStatus("");
 
     try {
-      console.log("Sending code to email:", { email });
       await axios.post("/api/v1/verify/send-code", { email });
       setStep(2);
       setTimer(60);
@@ -68,14 +76,15 @@ const OwnerSignup = () => {
     }
 
     try {
-      console.log("Verifying code:", { email, code });
       await axios.post("/api/v1/verify/verify-code", { email, code });
       setEmailVerified(true);
       setStep(3);
       toast.success("Email verified successfully!");
     } catch (error) {
       console.error("Verification error:", error);
-      toast.error(error?.response?.data?.message || "Incorrect code. Please try again.");
+      toast.error(
+        error?.response?.data?.message || "Incorrect code. Please try again."
+      );
     }
   };
 
@@ -91,7 +100,7 @@ const OwnerSignup = () => {
     }
 
     const payload = {
-      fullName: data.name.trim(),
+      fullName: data.fullName.trim(),
       username: data.username.trim().toLowerCase(),
       email: email.toLowerCase(),
       phoneNo: data.phone,
@@ -100,22 +109,22 @@ const OwnerSignup = () => {
 
     try {
       setLoading(true);
-      const res = await axios.post("/api/v1/owner/register", payload, {
+      const res = await axios.post("/api/v1/users/register", payload, {
         headers: {
           "Content-Type": "application/json",
         },
       });
 
       if (res.status === 201 || res.status === 200) {
-        toast.success("Signup successful! Redirecting to login...");
+        toast.success("Signup successful! Redirecting...");
         reset();
         setTimeout(() => {
-          navigate("/owner-login");
+          navigate("/rooms");
         }, 1500);
       }
-    } catch (error) {
-      console.error("Signup error:", error.response?.data || error.message);
-      toast.error(error?.response?.data?.message || "Signup failed.");
+    } catch (err) {
+      console.error("Signup error:", err.response?.data || err.message);
+      toast.error(err.response?.data?.message || "Signup failed");
     } finally {
       setLoading(false);
     }
@@ -123,19 +132,16 @@ const OwnerSignup = () => {
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row items-center justify-center bg-gray-50">
-      {/* Left Image Side */}
-      <div className="hidden md:flex w-1/2 h-full">
+      <div className="hidden md:flex w-1/2 h-full ">
         <img
           src={signupImg}
           alt="Signup Visual"
-          className="object-cover w-full h-full"
+          className="object-cover w-full h-full rounded-r-2xl"
         />
       </div>
 
-      {/* Right Side Content */}
       <div className="w-full md:w-1/2 flex items-center justify-center p-6 md:p-12">
         <div className="bg-white p-8 rounded-xl shadow-xl w-full max-w-md space-y-6">
-          {/* Step 1: Enter Email */}
           {step === 1 && (
             <>
               <h2 className="text-2xl font-bold text-center text-[#7472E0] mb-6">
@@ -146,9 +152,11 @@ const OwnerSignup = () => {
                 placeholder="Email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full p-3 border rounded-md"
+                className="w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#7472E0]"
               />
-              {emailStatus && <p className="text-sm text-red-500 mb-2">{emailStatus}</p>}
+              {emailStatus && (
+                <p className="text-sm text-red-500 mb-2">{emailStatus}</p>
+              )}
               <button
                 onClick={handleSendCode}
                 disabled={isSendingCode}
@@ -163,7 +171,6 @@ const OwnerSignup = () => {
             </>
           )}
 
-          {/* Step 2: Enter OTP */}
           {step === 2 && (
             <>
               <h2 className="text-2xl font-bold text-center text-[#7472E0] mb-6">
@@ -182,25 +189,30 @@ const OwnerSignup = () => {
                         newCode[index] = e.target.value;
                         setVerificationCode(newCode);
                         if (e.target.value && index < 5) {
-                          document.getElementById(`owner-code-${index + 1}`)?.focus();
+                          document.getElementById(`code-${index + 1}`)?.focus();
                         }
                       }}
-                      id={`owner-code-${index}`}
-                      className="w-full p-3 border rounded-md text-center"
+                      id={`code-${index}`}
+                      className="w-full p-3 border rounded-md text-center focus:outline-none focus:ring-2 focus:ring-[#7472E0]"
                     />
                   ))}
                 </div>
               </div>
               <p className="text-center text-gray-600 text-sm mb-4">
-                {timer > 0 ? `Resend code in ${timer}s` : (
-                  <button onClick={handleSendCode} className="text-[#7472E0] hover:underline">
+                {timer > 0 ? (
+                  `Resend code in ${timer}s`
+                ) : (
+                  <button
+                    onClick={handleSendCode}
+                    className="text-[#7472E0] hover:underline"
+                  >
                     Resend Code
                   </button>
                 )}
               </p>
               <button
                 onClick={handleVerifyCode}
-                className={`w-full py-3 rounded-md transition bg-[#7472E0] hover:bg-indigo-700 text-white`}
+                className="w-full py-3 rounded-md transition bg-[#7472E0] hover:bg-indigo-700 text-white"
               >
                 Verify Code
               </button>
@@ -213,7 +225,6 @@ const OwnerSignup = () => {
             </>
           )}
 
-          {/* Step 3: Email Verified, Signup Form */}
           {step === 3 && emailVerified && (
             <>
               <h2 className="text-2xl font-bold text-center text-[#7472E0] mb-6">
@@ -223,69 +234,138 @@ const OwnerSignup = () => {
                 <input
                   type="text"
                   placeholder="Full Name"
-                  {...register("name", { required: "Full name is required", minLength: { value: 3, message: "Full name must be at least 3 characters" } })}
-                  className="w-full p-3 border rounded-md"
+                  {...register("fullName", {
+                    required: "Full name is required",
+                    minLength: {
+                      value: 3,
+                      message: "Full name must be at least 3 characters",
+                    },
+                  })}
+                  className="w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#7472E0]"
                 />
-                {errors.name && <p className="text-sm text-red-500 mb-2">{errors.name.message}</p>}
+                {errors.fullName && (
+                  <p className="text-sm text-red-500 mb-2">
+                    {errors.fullName.message}
+                  </p>
+                )}
 
                 <input
                   type="text"
                   placeholder="Username"
-                  {...register("username", { required: "Username is required", minLength: { value: 3, message: "Username must be at least 3 characters" }, pattern: { value: /^[a-zA-Z0-9_]+$/, message: "Username can only contain letters, numbers, and underscores" } })}
-                  className="w-full p-3 border rounded-md"
+                  {...register("username", {
+                    required: "Username is required",
+                    minLength: {
+                      value: 3,
+                      message: "Username must be at least 3 characters",
+                    },
+                    pattern: {
+                      value: /^[a-zA-Z0-9_]+$/,
+                      message:
+                        "Username can only contain letters, numbers, and underscores",
+                    },
+                  })}
+                  className="w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#7472E0]"
                 />
-                {errors.username && <p className="text-sm text-red-500 mb-2">{errors.username.message}</p>}
+                {errors.username && (
+                  <p className="text-sm text-red-500 mb-2">
+                    {errors.username.message}
+                  </p>
+                )}
 
                 <input
                   type="email"
                   placeholder="Email"
                   value={email}
-                  className="w-full p-3 border rounded-md bg-gray-100 text-gray-500 cursor-not-allowed"
+                  className="w-full p-3 border rounded-md bg-gray-100 text-gray-500 cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-[#7472E0]"
                   readOnly
                 />
 
                 <input
                   type="tel"
                   placeholder="Phone Number"
-                  {...register("phone", { required: "Phone number is required", pattern: { value: /^[0-9]{10,15}$/, message: "Phone number must be 10-15 digits" } })}
-                  className="w-full p-3 border rounded-md"
+                  {...register("phone", {
+                    required: "Phone number is required",
+                    pattern: {
+                      value: /^[0-9]{10,15}$/,
+                      message: "Phone number must be 10-15 digits",
+                    },
+                  })}
+                  className="w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#7472E0]"
                 />
-                {errors.phone && <p className="text-sm text-red-500 mb-2">{errors.phone.message}</p>}
+                {errors.phone && (
+                  <p className="text-sm text-red-500 mb-2">
+                    {errors.phone.message}
+                  </p>
+                )}
 
-                <input
-                  type="password"
-                  placeholder="Password"
-                  {...register("password", { required: "Password is required", minLength: { value: 6, message: "Password must be at least 6 characters" }, validate: (value) => /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*#?&]{6,}$/.test(value) || "Password must contain letters and numbers" })}
-                  className="w-full p-3 border rounded-md"
-                />
-                {errors.password && <p className="text-sm text-red-500 mb-2">{errors.password.message}</p>}
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Password"
+                    {...register("password", {
+                      required: "Password is required",
+                      minLength: {
+                        value: 6,
+                        message: "Password must be at least 6 characters",
+                      },
+                    })}
+                    className="w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#7472E0]"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-3 text-gray-500"
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                  {errors.password && (
+                    <p className="text-sm text-red-500 mb-2">
+                      {errors.password.message}
+                    </p>
+                  )}
+                </div>
 
-                <input
-                  type="password"
-                  placeholder="Confirm Password"
-                  {...register("confirmPassword", { required: "Confirm password is required", validate: (value) => value === watch("password") || "Passwords do not match" })}
-                  className="w-full p-3 border rounded-md"
-                />
-                {errors.confirmPassword && <p className="text-sm text-red-500 mb-2">{errors.confirmPassword.message}</p>}
+                <div className="relative">
+                  <input
+                    type={showConfirmPassword ? "text" : "password"}
+                    placeholder="Confirm Password"
+                    {...register("confirmPassword", {
+                      required: "Please confirm your password",
+                      validate: (value) =>
+                        value === watch("password") || "Passwords do not match",
+                    })}
+                    className="w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#7472E0]"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-3 top-3 text-gray-500"
+                  >
+                    {showConfirmPassword ? (
+                      <EyeOff size={18} />
+                    ) : (
+                      <Eye size={18} />
+                    )}
+                  </button>
+                  {errors.confirmPassword && (
+                    <p className="text-sm text-red-500 mb-2">
+                      {errors.confirmPassword.message}
+                    </p>
+                  )}
+                </div>
 
                 <button
                   type="submit"
-                  disabled={loading || !emailVerified}
                   className={`w-full py-3 rounded-md transition ${
-                    loading || !emailVerified
+                    loading
                       ? "bg-gray-400 cursor-not-allowed"
                       : "bg-[#7472E0] hover:bg-indigo-700 text-white"
                   }`}
+                  disabled={loading}
                 >
                   {loading ? "Signing Up..." : "Sign Up"}
                 </button>
               </form>
-              <p className="text-center text-sm mt-4">
-                Already have an account?{" "}
-                <a href="/owner-login" className="text-[#7472E0] hover:underline">
-                  Login
-                </a>
-              </p>
             </>
           )}
         </div>
@@ -296,4 +376,4 @@ const OwnerSignup = () => {
   );
 };
 
-export default OwnerSignup;
+export default Signup;

@@ -22,6 +22,7 @@ import Notification from './pages/Notification';
 
 // Import your SocketProvider
 import { SocketProvider } from './context'
+import RoomFinderLoader from './components/RoomFinderLoader';
 
 const App = () => {
   return (
@@ -30,6 +31,7 @@ const App = () => {
         <Navbar />
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/l" element={<RoomFinderLoader/>} />
           <Route path="/user-login" element={<Login />} />
           <Route path="/user-register" element={<Signup />} />
           <Route path="/owner-login" element={<OwnerLogin />} />

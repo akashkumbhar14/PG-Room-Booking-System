@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
-import loginImage from "../assets/signup.png"; // Image
+import { Link, useNavigate } from "react-router-dom";
+import loginImage from "../assets/home.png"; // Image
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline"; // Importing the eye icons
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -39,7 +39,7 @@ const OwnerLogin = () => {
         localStorage.setItem("owner", JSON.stringify(user));
 
         toast.success("Owner login successful!");
-        navigate("/owner-profile"); // Change this path as needed
+        navigate("/owner-profile");
       }
     } catch (error) {
       toast.error(error.response?.data?.message || "Login failed! Try again.");
@@ -113,12 +113,12 @@ const OwnerLogin = () => {
 
           <p className="text-center text-sm mt-4">
             Don’t have an account?{" "}
-            <a
-              href="/owner-register"
+            <Link
+              to="/owner-register"
               className="text-[#7472E0] hover:underline"
             >
               Sign Up
-            </a>
+            </Link>
           </p>
         </div>
       </div>
