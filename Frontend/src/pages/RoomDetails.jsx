@@ -15,7 +15,9 @@ import {
   FaStar,
   FaCheckCircle,
   FaTimesCircle,
+  FaPhoneAlt,
 } from "react-icons/fa";
+// import { FaPhoneAlt } from "react-icons/fa";
 
 const RoomDetails = () => {
   const { id } = useParams();
@@ -61,10 +63,8 @@ const RoomDetails = () => {
         return;
       }
 
-      const roomId = id;
-
       const res = await axios.post(
-        `/api/v1/booking/create-booking/${roomId}`,
+        `/api/v1/booking/create-booking/${id}`,
         {},
         {
           headers: {
@@ -74,26 +74,23 @@ const RoomDetails = () => {
       );
 
       if (res.status === 200) {
-        toast.success("Room booked successfully!");        
+        toast.success("Room booked successfully!");
       }
-      
     } catch (error) {
       console.error("Booking error:", error);
-
       if (error.response) {
-        console.log("Response Error:", error.response);
         toast.error(error.response.data.message);
       } else if (error.request) {
-        console.log("Request Error:", error.request);
         toast.error("No response from server. Please try again later.");
       } else {
-        console.error("Error:", error.message);
         toast.error("Something went wrong. Try again.");
       }
     } finally {
       setBookingLoading(false);
     }
   };
+
+  const isOwner = !!localStorage.getItem("ownertoken");
 
   if (loading) return <div className="p-8 text-center">Loading...</div>;
   if (!room)
@@ -141,9 +138,12 @@ const RoomDetails = () => {
             <>
               <p className="flex items-center gap-2 text-gray-700">
                 <FaUserCircle className="text-[#7472E0]" />
-                {room.owner.name}
+                <strong>Name:</strong>{room.owner.fullName || room.owner.username}
               </p>
-              <p className="ml-6 text-sm text-gray-600">{room.owner.contact}</p>
+              <p className="flex items-center gap-2  text-sm text-gray-600">
+                <FaPhoneAlt className="text-[#7472E0]" />
+                <strong>Mobile No :</strong>{room.owner.phoneNo}
+              </p>
             </>
           ) : (
             <p className="text-gray-600 italic">Owner info not available</p>
@@ -206,7 +206,7 @@ const RoomDetails = () => {
         )}
       </div>
 
-      {room.status === "Available" && (
+      {room.status === "Available" && !isOwner && (
         <div className="text-center mt-8">
           <button
             onClick={handleBooking}

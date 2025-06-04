@@ -26,17 +26,16 @@ const OwnerProfile = () => {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
-  // Add this useEffect hook
   useEffect(() => {
     if (message || error) {
       const timer = setTimeout(() => {
         setMessage("");
         setError("");
-      }, 3000); // Message disappears after 5 seconds
+      }, 3000); 
 
-      return () => clearTimeout(timer); // Cleanup the timer if component unmounts or message/error changes
+      return () => clearTimeout(timer); 
     }
-  }, [message, error]); // Re-run effect when message or error changes
+  }, [message, error]);
 
 
   const fetchOwnerProfile = async () => {
