@@ -67,7 +67,7 @@ const registerRoom = asyncHandler(async (req, res) => {
 });
 
 const getNearbyAvailableRooms = asyncHandler(async (req, res) => {
-    const { longitude, latitude, radius = 5000, minPrice, maxPrice } = req.query;
+    const { longitude, latitude, radius = 5000, minPrice, maxPrice, facilities } = req.query;
 
     if (!longitude || !latitude) {
         throw new ApiError(400, "Longitude and latitude are required");
@@ -92,6 +92,13 @@ const getNearbyAvailableRooms = asyncHandler(async (req, res) => {
         if (maxPrice) query.price.$lte = parseFloat(maxPrice);
     }
 
+    if (facilities) {
+        const facilitiesArray = Array.isArray(facilities)
+            ? facilities
+            : facilities.split(",");
+        query.facilities = { $all: facilitiesArray };
+    }
+
     const rooms = await Room.find(query)
         .populate('owner', 'username email phoneNo')
         .select('-__v');
@@ -100,6 +107,7 @@ const getNearbyAvailableRooms = asyncHandler(async (req, res) => {
         .status(200)
         .json(new ApiResponse(200, rooms, "Nearby rooms fetched successfully"));
 });
+
 
 const getAvailableRooms = asyncHandler(async (req, res) => {
     const { minPrice, maxPrice, facilities } = req.query;

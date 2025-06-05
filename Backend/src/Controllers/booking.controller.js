@@ -47,6 +47,11 @@ const updateBookingStatus = asyncHandler(async (req, res) => {
 
     await Notification.findByIdAndUpdate(notificationId, { read: true });
 
+
+    if ( status === 'approved') {
+        await Room.findByIdAndUpdate(booking.room, { status: "Booked"});
+    }
+
     // 1. Send notification to the user
     await sendNotification(req.app.get('io'), {
         receiverId: booking.user._id,
@@ -62,7 +67,40 @@ const updateBookingStatus = asyncHandler(async (req, res) => {
     )
 });
 
+const getUserBookedRooms = asyncHandler(async (req, res) => {
+    const userId = req.user._id;
+
+    // 1. Find bookings with status 'approved'
+    const bookings = await Booking.find({ 
+        user: userId,
+        status: "approved"
+    }).populate({
+        path: "room",
+        populate: {
+            path: "owner",
+            select: "username email"
+        }
+    });
+
+    // 2. Check if any approved bookings exist
+    if (!bookings || bookings.length === 0) {
+        return res.status(404).json(
+            new ApiResponse(404, [], "No approved booked rooms found for this user")
+        );
+    }
+
+    // 3. Extract room data
+    const bookedRooms = bookings.map((booking) => booking.room);
+
+    // 4. Return only approved rooms
+    return res.status(200).json(
+        new ApiResponse(200, bookedRooms, "Approved booked rooms fetched successfully")
+    );
+});
+
+
 export {
     createBooking,
-    updateBookingStatus
+    updateBookingStatus,
+    getUserBookedRooms
 };

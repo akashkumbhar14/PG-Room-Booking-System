@@ -1,3 +1,5 @@
+// ✅ FIXED CODE FOR FILTERS IN NEARBY ROOMS
+
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
@@ -8,18 +10,10 @@ import {
 import RoomFinderLoader from "../components/RoomFinderLoader";
 
 const facilityIcons = {
-  "Wi-Fi": <FaWifi title="Wi-Fi" />,
-  "Hot Water": <FaShower title="Hot Water" />,
-  "Kitchen": <FaUtensils title="Kitchen" />,
-  "Parking": <FaCar title="Parking" />,
-  "Attach Bathroom": <FaShower title="Attach Bathroom" />,
-  "Balcony": <FaTv title="Balcony" />,
-  "Bed": <FaBed title="Bed" />,
-  "Chair": <FaChair title="Chair" />,
-  "Desk": <FaChair title="Desk" />,
-  "Wardrobe": <FaChair title="Wardrobe" />,
+  "Wi-Fi": <FaWifi title="Wi-Fi" />, "Hot Water": <FaShower title="Hot Water" />, "Kitchen": <FaUtensils title="Kitchen" />,
+  "Parking": <FaCar title="Parking" />, "Attach Bathroom": <FaShower title="Attach Bathroom" />, "Balcony": <FaTv title="Balcony" />,
+  "Bed": <FaBed title="Bed" />, "Chair": <FaChair title="Chair" />, "Desk": <FaChair title="Desk" />, "Wardrobe": <FaChair title="Wardrobe" />
 };
-
 const allFacilities = Object.keys(facilityIcons);
 
 const AvailableRooms = () => {
@@ -34,7 +28,6 @@ const AvailableRooms = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showNearbyRooms, setShowNearbyRooms] = useState(false);
-
   const navigate = useNavigate();
 
   const fetchRooms = async () => {
@@ -43,7 +36,7 @@ const AvailableRooms = () => {
       const params = {
         minPrice,
         maxPrice,
-        ...(selectedFacilities.length && { facilities: selectedFacilities.join(",") }),
+        ...(selectedFacilities.length && { facilities: selectedFacilities.join(",") })
       };
       const response = await axios.get("/api/v1/rooms/available", { params });
       setRooms(response.data.data || []);
@@ -56,60 +49,56 @@ const AvailableRooms = () => {
   };
 
   const fetchNearbyRooms = async () => {
-    try {
-      setLoading(true);
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(async (position) => {
-          const { latitude, longitude } = position.coords;
+    if (!navigator.geolocation) {
+      setError("Geolocation not supported by your device.");
+      return;
+    }
+
+    setLoading(true);
+    navigator.geolocation.getCurrentPosition(
+      async ({ coords }) => {
+        try {
+          const { latitude, longitude } = coords;
           const params = {
             latitude,
             longitude,
             radius: 5000,
             minPrice,
             maxPrice,
-            ...(selectedFacilities.length && { facilities: selectedFacilities.join(",") }),
+            ...(selectedFacilities.length && { facilities: selectedFacilities.join(",") })
           };
           const response = await axios.get("/api/v1/rooms/nearby", { params });
           setNearbyRooms(response.data.data || []);
-          setShowNearbyRooms(true);
-        }, (error) => {
-          console.error("Geolocation error:", error);
-          setError("Location access denied. Please allow it and try again.");
-        });
-      } else {
-        setError("Geolocation not supported by your device.");
+        } catch (err) {
+          console.error("Error fetching nearby rooms:", err);
+          setError("Failed to load nearby rooms.");
+        } finally {
+          setLoading(false);
+        }
+      },
+      (error) => {
+        console.error("Geolocation error:", error);
+        setError("Location access denied. Please allow it and try again.");
+        setLoading(false);
       }
-    } catch (err) {
-      console.error("Error fetching nearby rooms:", err);
-      setError("Failed to load nearby rooms.");
-    } finally {
-      setLoading(false);
-    }
+    );
   };
 
   useEffect(() => {
-    if (showNearbyRooms) {
-      fetchNearbyRooms();
-    } else {
-      fetchRooms();
-    }
+    showNearbyRooms ? fetchNearbyRooms() : fetchRooms();
   }, [minPrice, maxPrice, selectedFacilities, showNearbyRooms]);
 
   const handleMinPriceChange = (e) => {
-    const value = Math.min(Number(e.target.value), maxPrice);
-    setTempMinPrice(value);
+    setTempMinPrice(Math.min(Number(e.target.value), maxPrice));
   };
 
   const handleMaxPriceChange = (e) => {
-    const value = Math.max(Number(e.target.value), minPrice);
-    setTempMaxPrice(value);
+    setTempMaxPrice(Math.max(Number(e.target.value), minPrice));
   };
 
   const handleFacilityChange = (facility) => {
     setTempSelectedFacilities((prev) =>
-      prev.includes(facility)
-        ? prev.filter((f) => f !== facility)
-        : [...prev, facility]
+      prev.includes(facility) ? prev.filter((f) => f !== facility) : [...prev, facility]
     );
   };
 
@@ -124,11 +113,12 @@ const AvailableRooms = () => {
   };
 
   const resetFilters = () => {
-    setTempMinPrice(1000);
-    setTempMaxPrice(10000);
+    const defaultMin = 1000, defaultMax = 10000;
+    setTempMinPrice(defaultMin);
+    setTempMaxPrice(defaultMax);
     setTempSelectedFacilities([]);
-    setMinPrice(1000);
-    setMaxPrice(10000);
+    setMinPrice(defaultMin);
+    setMaxPrice(defaultMax);
     setSelectedFacilities([]);
   };
 
@@ -140,45 +130,30 @@ const AvailableRooms = () => {
         <p className="text-red-500 text-center">{error}</p>
       ) : (
         <div className="flex flex-col lg:flex-row gap-10 max-w-8xl mx-auto px-4 lg:px-14">
-          {/* Filters Panel */}
+          {/* Filter Panel */}
           <div className="w-full lg:w-[260px] bg-white rounded-xl shadow p-5 shrink-0 h-fit">
             <h3 className="text-xl font-semibold text-[#7472E0] mb-4">Filters</h3>
 
-            {/* Min Price Slider */}
-            <div className="mb-4">
-              <label className="block font-medium text-gray-700 mb-1">Min Price</label>
-              <input
-                type="range"
-                min="1000"
-                max="10000"
-                step="500"
-                value={tempMinPrice}
-                onChange={handleMinPriceChange}
-                className="w-full accent-[#7472E0]"
-              />
-              <span className="block text-[#7472E0] font-semibold mt-1">
-                Rs. {tempMinPrice}
-              </span>
-            </div>
+            {/* Price Sliders */}
+            {["Min", "Max"].map((type, i) => (
+              <div className="mb-4" key={type}>
+                <label className="block font-medium text-gray-700 mb-1">{type} Price</label>
+                <input
+                  type="range"
+                  min="1000"
+                  max="10000"
+                  step="500"
+                  value={i === 0 ? tempMinPrice : tempMaxPrice}
+                  onChange={i === 0 ? handleMinPriceChange : handleMaxPriceChange}
+                  className="w-full accent-[#7472E0]"
+                />
+                <span className="block text-[#7472E0] font-semibold mt-1">
+                  Rs. {i === 0 ? tempMinPrice : tempMaxPrice}
+                </span>
+              </div>
+            ))}
 
-            {/* Max Price Slider */}
-            <div className="mb-6">
-              <label className="block font-medium text-gray-700 mb-1">Max Price</label>
-              <input
-                type="range"
-                min="1000"
-                max="10000"
-                step="500"
-                value={tempMaxPrice}
-                onChange={handleMaxPriceChange}
-                className="w-full accent-[#7472E0]"
-              />
-              <span className="block text-[#7472E0] font-semibold mt-1">
-                Rs. {tempMaxPrice}
-              </span>
-            </div>
-
-            {/* Facilities Filter */}
+            {/* Facilities */}
             <div className="mb-6">
               <label className="block font-medium text-gray-700 mb-2">Facilities</label>
               <div className="grid grid-cols-2 gap-2 text-sm">
@@ -196,43 +171,24 @@ const AvailableRooms = () => {
               </div>
             </div>
 
-            {/* Filter Buttons */}
+            {/* Buttons */}
             <div className="flex gap-2">
-              <button
-                onClick={applyFilters}
-                className="flex-1 bg-[#7472E0] text-white py-2 px-4 rounded-lg hover:bg-[#5e5bcf] transition"
-              >
-                Apply Filters
-              </button>
-              <button
-                onClick={resetFilters}
-                className="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-400 transition"
-              >
-                Reset
-              </button>
+              <button onClick={applyFilters} className="flex-1 bg-[#7472E0] text-white py-2 px-4 rounded-lg hover:bg-[#5e5bcf] transition">Apply Filters</button>
+              <button onClick={resetFilters} className="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-400 transition">Reset</button>
             </div>
 
-            {/* Nearby Rooms Toggle */}
+            {/* Toggle Nearby */}
             <div className="mt-6">
-              {showNearbyRooms ? (
-                <button
-                  onClick={() => setShowNearbyRooms(false)}
-                  className="w-full bg-gray-400 text-white py-2 px-4 rounded-lg hover:bg-gray-500 transition"
-                >
-                  Back to All Rooms
-                </button>
-              ) : (
-                <button
-                  onClick={fetchNearbyRooms}
-                  className="w-full bg-[#7472E0] text-white py-2 px-4 rounded-lg hover:bg-[#5e5bcf] transition"
-                >
-                  Show Nearby Rooms
-                </button>
-              )}
+              <button
+                onClick={() => setShowNearbyRooms(!showNearbyRooms)}
+                className={`w-full ${showNearbyRooms ? "bg-gray-400" : "bg-[#7472E0]"} text-white py-2 px-4 rounded-lg hover:bg-gray-500 transition`}
+              >
+                {showNearbyRooms ? "Back to All Rooms" : "Show Nearby Rooms"}
+              </button>
             </div>
           </div>
 
-          {/* Rooms Section */}
+          {/* Room Results */}
           <div className="flex-1 min-w-0">
             <h2 className="text-3xl font-bold text-[#7472E0] mb-6 text-center">
               {showNearbyRooms ? "Nearby Rooms" : "Available Rooms"}
@@ -245,11 +201,7 @@ const AvailableRooms = () => {
                   className="bg-white shadow rounded-2xl overflow-hidden relative cursor-pointer transition hover:scale-[1.01]"
                   onClick={() => handleRoomClick(room._id)}
                 >
-                  <img
-                    src={room.images?.[0] || "/default-room.jpg"}
-                    alt={room.name}
-                    className="w-full h-48 object-cover"
-                  />
+                  <img src={room.images?.[0] || "/default-room.jpg"} alt={room.name} className="w-full h-48 object-cover" />
                   <div className="p-5">
                     <h3 className="text-lg font-semibold text-gray-800">{room.name}</h3>
                     <div className="flex items-center text-sm text-[#7472E0] mb-2">
@@ -257,27 +209,19 @@ const AvailableRooms = () => {
                     </div>
                     <div className="flex flex-wrap gap-2 text-[#7472E0] mb-3">
                       {room.facilities?.map((f) => (
-                        <div key={f} title={f}>
-                          {facilityIcons[f] || <span>{f}</span>}
-                        </div>
+                        <div key={f} title={f}>{facilityIcons[f] || <span>{f}</span>}</div>
                       ))}
                     </div>
                     <div className="flex justify-between items-center border-t pt-3">
-                      <span className="font-bold text-[#7472E0]">
-                        Rs. {room.price}
-                        <span className="text-sm text-gray-500"> /month</span>
-                      </span>
-                      <span className="flex items-center gap-1 text-sm text-yellow-500">
-                        <FaStar />
-                        {room.rating || "N/A"}
-                      </span>
+                      <span className="font-bold text-[#7472E0]">Rs. {room.price} <span className="text-sm text-gray-500">/month</span></span>
+                      <span className="flex items-center gap-1 text-sm text-yellow-500"><FaStar />{room.rating || "N/A"}</span>
                     </div>
                   </div>
                 </div>
               ))}
             </div>
 
-            {/* No rooms found */}
+            {/* No Results */}
             {(showNearbyRooms ? nearbyRooms : rooms).length === 0 && (
               <p className="text-center text-gray-500 mt-10">No rooms found.</p>
             )}
