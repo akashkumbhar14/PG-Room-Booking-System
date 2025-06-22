@@ -17,18 +17,28 @@ import {
   FaTimesCircle,
   FaPhoneAlt,
 } from "react-icons/fa";
-// import { FaPhoneAlt } from "react-icons/fa";
 
 const RoomDetails = () => {
   const { id } = useParams();
   const [room, setRoom] = useState(null);
   const [loading, setLoading] = useState(true);
   const [bookingLoading, setBookingLoading] = useState(false);
+  const [hasBooked, setHasBooked] = useState(false);
+  const [showFeedbackForm, setShowFeedbackForm] = useState(false);
+  const [feedback, setFeedback] = useState({ comment: "", rating: 5 });
   const socket = useContext(SocketContext);
+
+  const usertoken = localStorage.getItem("usertoken");
+  const isOwner = !!localStorage.getItem("ownertoken");
+
+  useEffect(() => {
+    fetchRoomDetails();
+    checkBookingStatus();
+  }, [id]);
 
   const fetchRoomDetails = async () => {
     try {
-      const res = await axios.get(`http://localhost:8000/api/v1/rooms/${id}`);
+      const res = await axios.get(`/api/v1/rooms/${id}`);
       setRoom(res.data.data);
     } catch (error) {
       console.error("Error fetching room data", error);
@@ -38,9 +48,19 @@ const RoomDetails = () => {
     }
   };
 
-  useEffect(() => {
-    fetchRoomDetails();
-  }, [id]);
+  const checkBookingStatus = async () => {
+    if (!usertoken || isOwner) return;
+    try {
+      const res = await axios.get(`/api/v1/booking/user-booking/${id}`, {
+        headers: {
+          Authorization: `Bearer ${usertoken}`,
+        },
+      });
+      setHasBooked(res.data.data.booked);
+    } catch (error) {
+      setHasBooked(false);
+    }
+  };
 
   const renderFacility = (label, isAvailable) => (
     <div className="flex items-center gap-2 text-gray-700">
@@ -56,8 +76,6 @@ const RoomDetails = () => {
   const handleBooking = async () => {
     try {
       setBookingLoading(true);
-      const usertoken = localStorage.getItem("usertoken");
-
       if (!usertoken) {
         toast.error("You must be logged in to book a room.");
         return;
@@ -78,19 +96,48 @@ const RoomDetails = () => {
       }
     } catch (error) {
       console.error("Booking error:", error);
-      if (error.response) {
-        toast.error(error.response.data.message);
-      } else if (error.request) {
-        toast.error("No response from server. Please try again later.");
-      } else {
-        toast.error("Something went wrong. Try again.");
-      }
+      toast.error("Failed to book room.");
     } finally {
       setBookingLoading(false);
     }
   };
 
-  const isOwner = !!localStorage.getItem("ownertoken");
+  const handleUnbook = async () => {
+    try {
+      const res = await axios.delete(`/api/v1/booking/unbook/${id}`, {
+        headers: {
+          Authorization: `Bearer ${usertoken}`,
+        },
+      });
+
+      if (res.status === 200) {
+        toast.success("Room unbooked successfully!");
+        setHasBooked(false);
+      }
+    } catch (error) {
+      console.error("Unbooking error:", error);
+      toast.error("Failed to unbook room.");
+    }
+  };
+
+  const submitFeedback = async () => {
+    try {
+      await axios.post(
+        `/api/v1/rooms/${id}/feedback`,
+        feedback,
+        {
+          headers: {
+            Authorization: `Bearer ${usertoken}`,
+          },
+        }
+      );
+      toast.success("Feedback submitted!");
+      setShowFeedbackForm(false);
+      fetchRoomDetails();
+    } catch (error) {
+      toast.error("Failed to submit feedback.");
+    }
+  };
 
   if (loading) return <div className="p-8 text-center">Loading...</div>;
   if (!room)
@@ -98,6 +145,7 @@ const RoomDetails = () => {
 
   return (
     <div className="max-w-5xl mx-auto p-6">
+      <ToastContainer />
       <h2 className="text-3xl font-bold text-[#7472E0] mb-4">{room.name}</h2>
 
       <Swiper
@@ -138,11 +186,11 @@ const RoomDetails = () => {
             <>
               <p className="flex items-center gap-2 text-gray-700">
                 <FaUserCircle className="text-[#7472E0]" />
-                <strong>Name:</strong>{room.owner.fullName || room.owner.username}
+                <strong>Name:</strong> {room.owner.fullName || room.owner.username}
               </p>
               <p className="flex items-center gap-2  text-sm text-gray-600">
                 <FaPhoneAlt className="text-[#7472E0]" />
-                <strong>Mobile No :</strong>{room.owner.phoneNo}
+                <strong>Mobile No :</strong> {room.owner.phoneNo}
               </p>
             </>
           ) : (
@@ -155,11 +203,10 @@ const RoomDetails = () => {
             Room Status
           </h3>
           <span
-            className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
-              room.status === "Available"
+            className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${room.status === "Available"
                 ? "bg-green-100 text-green-700"
                 : "bg-red-100 text-red-600"
-            }`}
+              }`}
           >
             {room.status}
           </span>
@@ -185,6 +232,28 @@ const RoomDetails = () => {
         </div>
       </div>
 
+      {!isOwner && (
+        <div className="text-center mt-8">
+          {room.status === "Available" && !hasBooked && (
+            <button
+              onClick={handleBooking}
+              disabled={bookingLoading}
+              className="px-6 py-3 bg-[#7472E0] hover:bg-[#5b59c7] text-white rounded-full font-semibold text-lg transition duration-300"
+            >
+              {bookingLoading ? "Booking..." : "Book Now"}
+            </button>
+          )}
+          {hasBooked && (
+            <button
+              onClick={handleUnbook}
+              className="ml-4 px-6 py-3 bg-red-600 hover:bg-red-500 text-white rounded-full font-semibold text-lg transition duration-300"
+            >
+              Unbook
+            </button>
+          )}
+        </div>
+      )}
+
       <div className="bg-white p-6 rounded-lg shadow mt-6">
         <h3 className="text-xl font-semibold text-[#7472E0] mb-4">Feedback</h3>
         {room.feedback.length ? (
@@ -204,21 +273,47 @@ const RoomDetails = () => {
         ) : (
           <p className="text-gray-600 italic">No feedback yet</p>
         )}
+
+        {!isOwner && usertoken && hasBooked && (
+          <button
+            onClick={() => setShowFeedbackForm(true)}
+            className="mt-4 px-4 py-2 bg-[#7472E0] text-white rounded"
+          >
+            Add Feedback
+          </button>
+        )}
+
+        {showFeedbackForm && (
+          <div className="mt-4">
+            <textarea
+              className="w-full p-2 border rounded mb-2"
+              placeholder="Write your feedback"
+              value={feedback.comment}
+              onChange={(e) =>
+                setFeedback({ ...feedback, comment: e.target.value })
+              }
+            />
+            <input
+              type="number"
+              max={5}
+              min={1}
+              value={feedback.rating}
+              onChange={(e) =>
+                setFeedback({ ...feedback, rating: parseInt(e.target.value) })
+              }
+              className="w-20 p-2 border rounded mb-2"
+            />
+            <button
+              onClick={submitFeedback}
+              className="px-4 py-2 bg-green-600 text-white rounded"
+            >
+              Submit Feedback
+            </button>
+          </div>
+        )}
       </div>
 
-      {room.status === "Available" && !isOwner && (
-        <div className="text-center mt-8">
-          <button
-            onClick={handleBooking}
-            disabled={bookingLoading}
-            className="px-6 py-3 bg-[#7472E0] hover:bg-[#5b59c7] text-white rounded-full font-semibold text-lg transition duration-300"
-          >
-            {bookingLoading ? "Booking..." : "Book Now"}
-          </button>
-        </div>
-      )}
 
-      <ToastContainer position="top-center" autoClose={2000} />
     </div>
   );
 };

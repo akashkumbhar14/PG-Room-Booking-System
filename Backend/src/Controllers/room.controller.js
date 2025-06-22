@@ -5,6 +5,7 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { geocoder } from "../utils/geocoder.js";
 import { deleteFromCloudinary, uploadOnCloudinary } from "../utils/cloudinary.js"
+import { Booking } from "../models/booking.model.js";
 
 const registerRoom = asyncHandler(async (req, res) => {
     const {
@@ -144,6 +145,7 @@ const getAvailableRooms = asyncHandler(async (req, res) => {
 
 const getRoomProfile = asyncHandler(async (req, res) => {
     const { roomId } = req.params;
+    const userId = req.user?._id; // Assumes JWT auth middleware sets req.user
 
     const room = await Room.findById(roomId)
         .populate('owner', 'username email phoneNo')
@@ -153,10 +155,33 @@ const getRoomProfile = asyncHandler(async (req, res) => {
         throw new ApiError(404, "Room not found");
     }
 
+    let alreadyBookedByUser = false;
+    let bookingId = null;
+
+    if (userId) {
+        const existingBooking = await Booking.findOne({
+            room: roomId,
+            user: userId,
+            status: 'approved',
+        });
+
+        if (existingBooking) {
+            alreadyBookedByUser = true;
+            bookingId = existingBooking._id;
+        }
+    }
+
+    const responsePayload = {
+        ...room.toObject(),
+        alreadyBookedByUser,
+        bookingId,
+    };
+
     return res
         .status(200)
-        .json(new ApiResponse(200, room, "Room details fetched"));
+        .json(new ApiResponse(200, responsePayload, "Room details fetched"));
 });
+
 
 const updateRoom = asyncHandler(async (req, res) => {
     const { roomId } = req.params;
@@ -255,6 +280,14 @@ const updateRoomDetails = asyncHandler(async (req, res) => {
       { $set: updateFields }, // Use spread operator to only set the fields that are provided
       { new: true } // Return the updated room
     );
+
+    if (status === "Available") {
+        console.log("room deleted when status is changes to available ...")
+        await Booking.deleteMany({
+            room: roomId,
+            status: "approved",
+        });
+    }
   
     return res.status(200).json({
       success: true,

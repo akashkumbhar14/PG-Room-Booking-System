@@ -3,7 +3,17 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 import { useSocket } from "../context/SocketContext.jsx";
-
+import {
+  FaEdit,
+  FaPlus,
+  FaHome,
+  FaEnvelope,
+  FaPhoneAlt,
+  FaUser,
+  FaTrash,
+  FaSignOutAlt,
+  FaBell,
+} from "react-icons/fa";
 const UserProfile = () => {
   const socket = useSocket();
   const navigate = useNavigate();
@@ -31,6 +41,11 @@ const UserProfile = () => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
 
+  const [loading, setLoading] = useState(true);
+  const [errorMsg, setErrorMsg] = useState("");
+  const [userRooms, setUserRooms] = useState([]);
+
+
   const fetchUserProfile = async () => {
     try {
       const res = await axios.get("/api/v1/users/profile", {
@@ -48,8 +63,30 @@ const UserProfile = () => {
     }
   };
 
+  const fetchAllocatedRooms = async () => {
+    try {
+      const response = await axios.get("/api/v1/booking/user-rooms", {
+        withCredentials: true,
+      });
+
+      console.log(response);
+      setAllocatedRooms(response.data.data || []);
+      setUserRooms(response.data.data || []);
+    } catch (error) {
+      console.error("Error fetching allocated rooms:", error);
+      if (error.response && error.response.data?.message) {
+        setErrorMsg(error.response.data.message);
+      } else {
+        setErrorMsg("Failed to fetch allocated rooms.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  }
+
   useEffect(() => {
     fetchUserProfile();
+    fetchAllocatedRooms();
     if (!socket) return;
 
     const handleNewNotification = (notification) => {
@@ -142,9 +179,8 @@ const UserProfile = () => {
               <div className="p-4 font-semibold text-gray-700 flex justify-between items-center border-b">
                 <span>Notifications</span>
                 <button
-                  className={`text-xs text-indigo-600 hover:underline ${
-                    isClearing ? "opacity-50 cursor-not-allowed" : ""
-                  }`}
+                  className={`text-xs text-indigo-600 hover:underline ${isClearing ? "opacity-50 cursor-not-allowed" : ""
+                    }`}
                   disabled={isClearing}
                   onClick={async () => {
                     setIsClearing(true);
@@ -207,11 +243,10 @@ const UserProfile = () => {
 
         {(message || error) && (
           <div
-            className={`mt-24 p-4 rounded-lg font-medium ${
-              message
-                ? "bg-green-100 text-green-700"
-                : "bg-red-100 text-red-700"
-            }`}
+            className={`mt-24 p-4 rounded-lg font-medium ${message
+              ? "bg-green-100 text-green-700"
+              : "bg-red-100 text-red-700"
+              }`}
           >
             {message || error}
           </div>
@@ -333,22 +368,40 @@ const UserProfile = () => {
         </div>
 
         {/* Allocated Rooms */}
-        {allocatedRooms.length > 0 && (
-          <div className="bg-white rounded-xl shadow-lg p-8">
-            <h3 className="text-2xl font-bold mb-6">Allocated Rooms</h3>
-            <ul className="space-y-4">
-              {allocatedRooms.map((room) => (
-                <li
+        <div className="bg-white rounded-2xl shadow-lg p-8">
+          <h3 className="text-xl font-semibold text-gray-700 mb-4">Allocated Rooms</h3>
+
+
+
+
+
+          {/* Allocated rooms */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {userRooms.length > 0 ? (
+              userRooms.map((room) => (
+                <div
                   key={room._id}
-                  className="border p-4 rounded-md hover:bg-gray-50"
+                  onClick={() => navigate(`/rooms/${room._id}`)}
+                  className="bg-white rounded-xl shadow-md p-6 border border-gray-100 hover:shadow-lg transition duration-200 relative cursor-pointer group"
                 >
-                  <p className="font-semibold">{room.name}</p>
-                  <p className="text-sm text-gray-600">{room.location}</p>
-                </li>
-              ))}
-            </ul>
+                  <h4 className="text-xl font-semibold text-indigo-700 mb-2 group-hover:text-indigo-800 transition duration-200">{room.name}</h4>
+                  <p className="text-sm text-gray-600 mb-1">
+                    <span className="font-medium text-gray-700">Location:</span> {room.address}
+                  </p>
+                  <p className="text-sm text-gray-600 mb-4">
+                    <span className="font-medium text-gray-700">Price:</span> ₹{room.price}
+                  </p>
+                </div>
+              ))
+            ) : (
+              <div className="col-span-full text-center text-gray-500 py-10">
+                <FaHome className="mx-auto mb-4 text-gray-300 text-6xl" />
+                <p className="text-lg italic">No rooms listed yet. </p>
+              </div>
+            )}
           </div>
-        )}
+
+        </div>
       </div>
     </div>
   );
